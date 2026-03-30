@@ -9,14 +9,12 @@ import {
   pgEnum,
 } from 'drizzle-orm/pg-core';
 
-export const tipoEnum = pgEnum('tipo', ['gimnasio', 'running']);
 export const recordTipoEnum = pgEnum('record_tipo', ['peso', 'distancia']);
 
 export const users = pgTable('users', {
   id: serial('id').primaryKey(),
   username: text('username').notNull().unique(),
   password_hash: text('password_hash').notNull(),
-  tipo: tipoEnum('tipo').notNull(),
   created_at: timestamp('created_at').defaultNow().notNull(),
 });
 

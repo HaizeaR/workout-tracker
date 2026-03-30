@@ -26,7 +26,6 @@ interface DashboardData {
 interface User {
   userId: number;
   username: string;
-  tipo: 'gimnasio' | 'running';
 }
 
 export default function DashboardPage() {
@@ -105,9 +104,7 @@ export default function DashboardPage() {
           <h1 className="text-xl font-bold text-white">
             Hola, {user?.username} 👋
           </h1>
-          <p className="text-gray-400 text-sm capitalize">
-            {user?.tipo === 'gimnasio' ? 'Gimnasio' : 'Running'}
-          </p>
+          <p className="text-gray-400 text-sm">Entrenamiento</p>
         </div>
         <button
           onClick={handleLogout}
@@ -176,28 +173,27 @@ export default function DashboardPage() {
           <p className="text-xs text-gray-500 mt-1">{completionRate}% completado</p>
         </div>
 
-        {/* Peso total o Distancia */}
-        {user?.tipo === 'gimnasio' ? (
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4">
-            <p className="text-gray-400 text-xs mb-1">Peso total</p>
-            <p className="text-2xl font-bold text-white">
-              {data?.weeklyStats.totalPeso
-                ? `${Math.round(data.weeklyStats.totalPeso).toLocaleString()}`
-                : '0'}
-            </p>
-            <p className="text-xs text-gray-500">kg levantados</p>
-          </div>
-        ) : (
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4">
-            <p className="text-gray-400 text-xs mb-1">Distancia</p>
-            <p className="text-2xl font-bold text-white">
-              {data?.weeklyStats.totalDistancia
-                ? data.weeklyStats.totalDistancia.toFixed(1)
-                : '0'}
-            </p>
-            <p className="text-xs text-gray-500">km esta semana</p>
-          </div>
-        )}
+        {/* Peso total */}
+        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4">
+          <p className="text-gray-400 text-xs mb-1">Peso total</p>
+          <p className="text-2xl font-bold text-white">
+            {data?.weeklyStats.totalPeso
+              ? `${Math.round(data.weeklyStats.totalPeso).toLocaleString()}`
+              : '0'}
+          </p>
+          <p className="text-xs text-gray-500">kg levantados</p>
+        </div>
+
+        {/* Distancia */}
+        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4">
+          <p className="text-gray-400 text-xs mb-1">Distancia</p>
+          <p className="text-2xl font-bold text-white">
+            {data?.weeklyStats.totalDistancia
+              ? data.weeklyStats.totalDistancia.toFixed(1)
+              : '0'}
+          </p>
+          <p className="text-xs text-gray-500">km esta semana</p>
+        </div>
       </div>
 
       {/* Recent PRs */}

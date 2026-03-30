@@ -39,12 +39,11 @@ export async function POST(req: NextRequest) {
     const token = await signToken({
       userId: user.id,
       username: user.username,
-      tipo: user.tipo,
     });
 
     const cookie = setAuthCookie(token);
     const response = NextResponse.json({
-      user: { id: user.id, username: user.username, tipo: user.tipo },
+      user: { id: user.id, username: user.username },
     });
 
     response.cookies.set(cookie.name, cookie.value, cookie.options as Parameters<typeof response.cookies.set>[2]);

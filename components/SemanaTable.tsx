@@ -6,7 +6,6 @@ import type { Sesion, Ejecucion } from '@/db/schema';
 interface SemanaTableProps {
   sesiones: Sesion[];
   ejecuciones: Ejecucion[];
-  tipo: 'gimnasio' | 'running';
   onUpdate: (ejecucionId: number, data: Partial<Ejecucion>) => Promise<void>;
 }
 
@@ -14,7 +13,7 @@ interface EditState {
   [ejecucionId: number]: Partial<Ejecucion>;
 }
 
-export default function SemanaTable({ sesiones, ejecuciones, tipo, onUpdate }: SemanaTableProps) {
+export default function SemanaTable({ sesiones, ejecuciones, onUpdate }: SemanaTableProps) {
   const [editState, setEditState] = useState<EditState>({});
   const [saving, setSaving] = useState<Set<number>>(new Set());
 
@@ -108,20 +107,12 @@ export default function SemanaTable({ sesiones, ejecuciones, tipo, onUpdate }: S
               <thead>
                 <tr className="border-b border-gray-800 text-xs text-gray-500 uppercase">
                   <th className="text-left px-4 py-2 font-medium">Ejercicio</th>
-                  {tipo === 'gimnasio' ? (
-                    <>
-                      <th className="text-center px-2 py-2 font-medium">Plan</th>
-                      <th className="text-center px-2 py-2 font-medium">Series</th>
-                      <th className="text-center px-2 py-2 font-medium">Reps</th>
-                      <th className="text-center px-2 py-2 font-medium">Peso (kg)</th>
-                    </>
-                  ) : (
-                    <>
-                      <th className="text-center px-2 py-2 font-medium">Plan</th>
-                      <th className="text-center px-2 py-2 font-medium">Dist (km)</th>
-                      <th className="text-center px-2 py-2 font-medium">Dur (min)</th>
-                    </>
-                  )}
+                  <th className="text-center px-2 py-2 font-medium">Plan</th>
+                  <th className="text-center px-2 py-2 font-medium">Series</th>
+                  <th className="text-center px-2 py-2 font-medium">Reps</th>
+                  <th className="text-center px-2 py-2 font-medium">Peso (kg)</th>
+                  <th className="text-center px-2 py-2 font-medium">Dist (km)</th>
+                  <th className="text-center px-2 py-2 font-medium">Dur (min)</th>
                   <th className="text-center px-2 py-2 font-medium">Sens.</th>
                   <th className="text-center px-2 py-2 font-medium">Dolor</th>
                   <th className="text-left px-2 py-2 font-medium">Notas</th>
@@ -155,82 +146,69 @@ export default function SemanaTable({ sesiones, ejecuciones, tipo, onUpdate }: S
                         </div>
                       </td>
 
-                      {tipo === 'gimnasio' ? (
-                        <>
-                          {/* Plan summary */}
-                          <td className="px-2 py-3 text-center">
-                            <span className="text-xs text-gray-500">
-                              {sesion.series && sesion.reps
-                                ? `${sesion.series}x${sesion.reps}`
-                                : '—'}
-                              {sesion.peso_kg ? ` @${sesion.peso_kg}` : ''}
-                            </span>
-                          </td>
-                          {/* Series */}
-                          <td className="px-2 py-3">
-                            <input
-                              type="number"
-                              min="0"
-                              value={getFieldValue(ejec, 'series') ?? ''}
-                              onChange={(e) => handleChange(ejec.id, 'series', e.target.value ? parseInt(e.target.value) : null)}
-                              className="w-16 px-2 py-1.5 bg-gray-800 border border-gray-700 rounded-lg text-center text-sm text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                            />
-                          </td>
-                          {/* Reps */}
-                          <td className="px-2 py-3">
-                            <input
-                              type="number"
-                              min="0"
-                              value={getFieldValue(ejec, 'reps') ?? ''}
-                              onChange={(e) => handleChange(ejec.id, 'reps', e.target.value ? parseInt(e.target.value) : null)}
-                              className="w-16 px-2 py-1.5 bg-gray-800 border border-gray-700 rounded-lg text-center text-sm text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                            />
-                          </td>
-                          {/* Peso */}
-                          <td className="px-2 py-3">
-                            <input
-                              type="number"
-                              min="0"
-                              step="0.5"
-                              value={getFieldValue(ejec, 'peso_kg') ?? ''}
-                              onChange={(e) => handleChange(ejec.id, 'peso_kg', e.target.value ? parseFloat(e.target.value) : null)}
-                              className="w-20 px-2 py-1.5 bg-gray-800 border border-gray-700 rounded-lg text-center text-sm text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                            />
-                          </td>
-                        </>
-                      ) : (
-                        <>
-                          {/* Plan summary */}
-                          <td className="px-2 py-3 text-center">
-                            <span className="text-xs text-gray-500">
-                              {sesion.distancia_km ? `${sesion.distancia_km}km` : '—'}
-                              {sesion.duracion_min ? ` ${sesion.duracion_min}m` : ''}
-                            </span>
-                          </td>
-                          {/* Distancia */}
-                          <td className="px-2 py-3">
-                            <input
-                              type="number"
-                              min="0"
-                              step="0.1"
-                              value={getFieldValue(ejec, 'distancia_km') ?? ''}
-                              onChange={(e) => handleChange(ejec.id, 'distancia_km', e.target.value ? parseFloat(e.target.value) : null)}
-                              className="w-20 px-2 py-1.5 bg-gray-800 border border-gray-700 rounded-lg text-center text-sm text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                            />
-                          </td>
-                          {/* Duracion */}
-                          <td className="px-2 py-3">
-                            <input
-                              type="number"
-                              min="0"
-                              step="1"
-                              value={getFieldValue(ejec, 'duracion_min') ?? ''}
-                              onChange={(e) => handleChange(ejec.id, 'duracion_min', e.target.value ? parseFloat(e.target.value) : null)}
-                              className="w-20 px-2 py-1.5 bg-gray-800 border border-gray-700 rounded-lg text-center text-sm text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
-                            />
-                          </td>
-                        </>
-                      )}
+                      {/* Plan summary */}
+                      <td className="px-2 py-3 text-center">
+                        <span className="text-xs text-gray-500">
+                          {sesion.series && sesion.reps ? `${sesion.series}x${sesion.reps}` : ''}
+                          {sesion.peso_kg ? ` @${sesion.peso_kg}kg` : ''}
+                          {sesion.distancia_km ? `${sesion.distancia_km}km` : ''}
+                          {sesion.duracion_min ? ` ${sesion.duracion_min}m` : ''}
+                          {!sesion.series && !sesion.distancia_km ? '—' : ''}
+                        </span>
+                      </td>
+                      {/* Series */}
+                      <td className="px-2 py-3">
+                        <input
+                          type="number"
+                          min="0"
+                          value={getFieldValue(ejec, 'series') ?? ''}
+                          onChange={(e) => handleChange(ejec.id, 'series', e.target.value ? parseInt(e.target.value) : null)}
+                          className="w-16 px-2 py-1.5 bg-gray-800 border border-gray-700 rounded-lg text-center text-sm text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                        />
+                      </td>
+                      {/* Reps */}
+                      <td className="px-2 py-3">
+                        <input
+                          type="number"
+                          min="0"
+                          value={getFieldValue(ejec, 'reps') ?? ''}
+                          onChange={(e) => handleChange(ejec.id, 'reps', e.target.value ? parseInt(e.target.value) : null)}
+                          className="w-16 px-2 py-1.5 bg-gray-800 border border-gray-700 rounded-lg text-center text-sm text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                        />
+                      </td>
+                      {/* Peso */}
+                      <td className="px-2 py-3">
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.5"
+                          value={getFieldValue(ejec, 'peso_kg') ?? ''}
+                          onChange={(e) => handleChange(ejec.id, 'peso_kg', e.target.value ? parseFloat(e.target.value) : null)}
+                          className="w-20 px-2 py-1.5 bg-gray-800 border border-gray-700 rounded-lg text-center text-sm text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                        />
+                      </td>
+                      {/* Distancia */}
+                      <td className="px-2 py-3">
+                        <input
+                          type="number"
+                          min="0"
+                          step="0.1"
+                          value={getFieldValue(ejec, 'distancia_km') ?? ''}
+                          onChange={(e) => handleChange(ejec.id, 'distancia_km', e.target.value ? parseFloat(e.target.value) : null)}
+                          className="w-20 px-2 py-1.5 bg-gray-800 border border-gray-700 rounded-lg text-center text-sm text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                        />
+                      </td>
+                      {/* Duracion */}
+                      <td className="px-2 py-3">
+                        <input
+                          type="number"
+                          min="0"
+                          step="1"
+                          value={getFieldValue(ejec, 'duracion_min') ?? ''}
+                          onChange={(e) => handleChange(ejec.id, 'duracion_min', e.target.value ? parseFloat(e.target.value) : null)}
+                          className="w-20 px-2 py-1.5 bg-gray-800 border border-gray-700 rounded-lg text-center text-sm text-white focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                        />
+                      </td>
 
                       {/* Sensacion 1-5 */}
                       <td className="px-2 py-3">

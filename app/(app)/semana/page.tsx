@@ -22,7 +22,6 @@ interface SemanaDetail {
 interface User {
   userId: number;
   username: string;
-  tipo: 'gimnasio' | 'running';
 }
 
 export default function SemanaPage() {
@@ -177,7 +176,6 @@ export default function SemanaPage() {
         <SemanaTable
           sesiones={detail.plan}
           ejecuciones={detail.ejecuciones}
-          tipo={user?.tipo || 'gimnasio'}
           onUpdate={handleUpdate}
         />
       ) : null}

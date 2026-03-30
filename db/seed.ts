@@ -12,8 +12,8 @@ const db = drizzle(sql, { schema });
 async function seed() {
   console.log('Seeding users...');
 
-  const haizeaHash = await bcrypt.hash('haizea2024', 12);
-  const parejaHash = await bcrypt.hash('pareja2024', 12);
+  const haizeaHash = await bcrypt.hash('haizea2026', 12);
+  const ederHash = await bcrypt.hash('eder2026', 12);
 
   await db
     .insert(schema.users)
@@ -21,12 +21,10 @@ async function seed() {
       {
         username: 'haizea',
         password_hash: haizeaHash,
-        tipo: 'gimnasio',
       },
       {
-        username: 'pareja',
-        password_hash: parejaHash,
-        tipo: 'running',
+        username: 'eder',
+        password_hash: ederHash,
       },
     ])
     .onConflictDoNothing();
