@@ -76,6 +76,11 @@ export default function SemanaPage() {
   const [addForm, setAddForm] = useState<PlanEditState>(emptyPlanEdit());
   const [savingAdd, setSavingAdd] = useState(false);
 
+  // Move day state
+  const [movingDay, setMovingDay] = useState<string | null>(null); // fecha being moved
+  const [moveTarget, setMoveTarget] = useState<string>('');
+  const [savingMove, setSavingMove] = useState(false);
+
   useEffect(() => {
     async function load() {
       try {
@@ -234,6 +239,37 @@ export default function SemanaPage() {
     }
   }
 
+  async function handleMoveDay(oldFecha: string) {
+    if (!moveTarget || moveTarget === oldFecha) { setMovingDay(null); return; }
+    const sessions = detail?.plan.filter((s) => s.fecha === oldFecha);
+    if (!sessions?.length) { setMovingDay(null); return; }
+    setSavingMove(true);
+    try {
+      await Promise.all(sessions.map((s) =>
+        fetch(`/api/sesiones/${s.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ fecha: moveTarget }),
+        })
+      ));
+      setDetail((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          plan: prev.plan.map((s) => s.fecha === oldFecha ? { ...s, fecha: moveTarget } : s),
+          ejecuciones: prev.ejecuciones.map((e) => {
+            const isInDay = sessions.some((s) => s.id === e.sesion_id);
+            return isInDay ? { ...e, fecha: moveTarget } : e;
+          }),
+        };
+      });
+      setOpenDays((prev) => { const n = new Set(prev); n.delete(oldFecha); n.add(moveTarget); return n; });
+      setMovingDay(null);
+    } finally {
+      setSavingMove(false);
+    }
+  }
+
   function toggleDay(fecha: string) {
     setOpenDays((prev) => { const n = new Set(prev); n.has(fecha) ? n.delete(fecha) : n.add(fecha); return n; });
   }
@@ -339,23 +375,63 @@ export default function SemanaPage() {
             return (
               <div key={fecha} className="rounded-xl overflow-hidden" style={{ border: `1px solid ${isToday ? '#c4f135' : allDone ? '#3a5a1a' : '#2a2d36'}` }}>
                 {/* Day header */}
-                <button
-                  onClick={() => toggleDay(fecha)}
-                  className="w-full flex items-center justify-between px-4 py-3"
-                  style={{ background: allDone ? '#1e2d0e' : '#1a1d24' }}
-                >
-                  <div className="flex items-center gap-2">
-                    {isToday && <span className="w-2 h-2 rounded-full" style={{ background: '#c4f135' }} />}
-                    <span className="font-medium text-sm capitalize" style={{ color: allDone ? '#8ab030' : '#f0f0f0' }}>{dateLabel}</span>
-                    {isToday && <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: '#c4f135', color: '#0f1117' }}>hoy</span>}
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs" style={{ color: '#888' }}>{doneCount}/{sessions.length}</span>
-                    <svg className="w-4 h-4" style={{ color: '#555', transform: isOpen ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.2s' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                    </svg>
-                  </div>
-                </button>
+                <div style={{ background: allDone ? '#1e2d0e' : '#1a1d24' }}>
+                  <button
+                    onClick={() => toggleDay(fecha)}
+                    className="w-full flex items-center justify-between px-4 py-3"
+                  >
+                    <div className="flex items-center gap-2">
+                      {isToday && <span className="w-2 h-2 rounded-full" style={{ background: '#c4f135' }} />}
+                      <span className="font-medium text-sm capitalize" style={{ color: allDone ? '#8ab030' : '#f0f0f0' }}>{dateLabel}</span>
+                      {isToday && <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: '#c4f135', color: '#0f1117' }}>hoy</span>}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {/* Move day button */}
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setMovingDay(movingDay === fecha ? null : fecha); setMoveTarget(fecha); }}
+                        className="w-6 h-6 rounded flex items-center justify-center"
+                        style={{ background: movingDay === fecha ? '#2a3a0e' : 'transparent' }}
+                        title="Cambiar día"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke={movingDay === fecha ? '#c4f135' : '#555'} strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      </button>
+                      <span className="text-xs" style={{ color: '#888' }}>{doneCount}/{sessions.length}</span>
+                      <svg className="w-4 h-4" style={{ color: '#555', transform: isOpen ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.2s' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                  </button>
+
+                  {/* Move day picker */}
+                  {movingDay === fecha && (
+                    <div className="px-4 pb-3 flex items-center gap-2">
+                      <input
+                        type="date"
+                        value={moveTarget}
+                        onChange={(e) => setMoveTarget(e.target.value)}
+                        className="flex-1 px-3 py-1.5 rounded-lg text-sm focus:outline-none"
+                        style={{ background: '#111', border: '1px solid #2a2d36', color: '#f0f0f0', colorScheme: 'dark' }}
+                      />
+                      <button
+                        onClick={() => handleMoveDay(fecha)}
+                        disabled={savingMove || !moveTarget || moveTarget === fecha}
+                        className="px-3 py-1.5 rounded-lg text-sm font-semibold"
+                        style={{ background: '#c4f135', color: '#0f1117', opacity: savingMove ? 0.7 : 1 }}
+                      >
+                        {savingMove ? '...' : 'Mover'}
+                      </button>
+                      <button
+                        onClick={() => setMovingDay(null)}
+                        className="px-3 py-1.5 rounded-lg text-sm"
+                        style={{ background: '#2a2d36', color: '#888' }}
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  )}
+                </div>
 
                 {/* Exercise cards */}
                 {isOpen && (

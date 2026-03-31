@@ -459,19 +459,6 @@ export default function DashboardPage() {
           <p className="text-xs mt-1" style={{ color: '#555' }}>{completionRate}% completado</p>
         </div>
 
-        <div
-          className="rounded-xl p-4"
-          style={{ background: '#1a1d24', border: '1px solid #2a2d36' }}
-        >
-          <p className="text-xs uppercase tracking-wide" style={{ color: '#888' }}>Peso total</p>
-          <p className="text-2xl font-bold mt-1" style={{ color: '#f0f0f0' }}>
-            {data?.weeklyStats.totalPeso
-              ? Math.round(data.weeklyStats.totalPeso).toLocaleString()
-              : '0'}
-          </p>
-          <p className="text-xs mt-1" style={{ color: '#555' }}>kg levantados</p>
-        </div>
-
         {(data?.weeklyStats.totalDistancia ?? 0) > 0 && (
           <div
             className="rounded-xl p-4 col-span-2"

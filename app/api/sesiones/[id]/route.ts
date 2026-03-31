@@ -17,15 +17,23 @@ export async function PUT(
 
   try {
     const body = await req.json();
-    const { ejercicio, categoria, series, reps, peso_kg, duracion_min, distancia_km } = body;
+    const { ejercicio, categoria, series, reps, peso_kg, duracion_min, distancia_km, fecha } = body;
 
     const [updated] = await db
       .update(sesiones)
-      .set({ ejercicio, categoria, series, reps, peso_kg, duracion_min, distancia_km })
+      .set({ ejercicio, categoria, series, reps, peso_kg, duracion_min, distancia_km, ...(fecha ? { fecha } : {}) })
       .where(and(eq(sesiones.id, sesionId), eq(sesiones.user_id, user.userId)))
       .returning();
 
     if (!updated) return NextResponse.json({ error: 'Not found' }, { status: 404 });
+
+    // If fecha changed, update the ejecucion too
+    if (fecha) {
+      await db
+        .update(ejecuciones)
+        .set({ fecha })
+        .where(eq(ejecuciones.sesion_id, sesionId));
+    }
 
     return NextResponse.json({ sesion: updated });
   } catch (error) {
