@@ -769,6 +769,87 @@ export default function SemanaPage() {
         </div>
       ) : (
         <div className="space-y-3">
+          {/* Add new day to existing week */}
+          {selectedId !== null && !isEmptySemana && (
+            <div>
+              {addingTopLevel ? (
+                <div className="rounded-xl p-4" style={{ background: '#1a1d24', border: '1px solid #c4f13544' }}>
+                  <p className="text-xs font-semibold uppercase tracking-wide mb-3" style={{ color: '#c4f135' }}>Nuevo día de entreno</p>
+                  <div className="space-y-2">
+                    <div>
+                      <label className="block text-xs mb-1" style={{ color: '#555' }}>Fecha *</label>
+                      <input
+                        type="date"
+                        value={topAddForm.fecha}
+                        onChange={(e) => setTopAddForm((p) => ({ ...p, fecha: e.target.value }))}
+                        className="w-full px-3 py-2 rounded-lg text-sm focus:outline-none"
+                        style={{ background: '#111', border: '1px solid #2a2d36', color: '#f0f0f0', colorScheme: 'dark' }}
+                      />
+                    </div>
+                    <input
+                      type="text"
+                      value={topAddForm.ejercicio}
+                      onChange={(e) => setTopAddForm((p) => ({ ...p, ejercicio: e.target.value }))}
+                      placeholder="Ejercicio *"
+                      className="w-full px-3 py-2 rounded-lg text-sm focus:outline-none"
+                      style={{ background: '#111', border: '1px solid #2a2d36', color: '#f0f0f0' }}
+                      autoFocus
+                    />
+                    <CategoriaSelect value={topAddForm.categoria} onChange={(v) => setTopAddForm((p) => ({ ...p, categoria: v }))} />
+                    <div className="grid grid-cols-3 gap-2">
+                      {[
+                        { key: 'series', label: 'Series' },
+                        { key: 'reps', label: 'Reps' },
+                        { key: 'peso_kg', label: 'Peso kg' },
+                        { key: 'distancia_km', label: 'Dist km' },
+                        { key: 'ritmo', label: 'Ritmo min/km' },
+                      ].map(({ key, label }) => (
+                        <div key={key}>
+                          <label className="block text-xs mb-1" style={{ color: '#555' }}>{label}</label>
+                          <input
+                            type="number" min="0" step="0.1"
+                            value={topAddForm[key as keyof PlanEditState]}
+                            onChange={(e) => setTopAddForm((p) => ({ ...p, [key]: e.target.value }))}
+                            className="w-full px-2 py-1.5 rounded-lg text-center text-sm focus:outline-none"
+                            style={{ background: '#111', border: '1px solid #2a2d36', color: '#f0f0f0' }}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                    <div className="flex gap-2 pt-1">
+                      <button
+                        onClick={handleTopLevelAdd}
+                        disabled={savingTopAdd || !topAddForm.ejercicio.trim() || !topAddForm.fecha}
+                        className="flex-1 py-2 rounded-lg text-sm font-semibold"
+                        style={{ background: '#c4f135', color: '#0f1117', opacity: savingTopAdd ? 0.7 : 1 }}
+                      >
+                        {savingTopAdd ? 'Añadiendo...' : 'Añadir'}
+                      </button>
+                      <button
+                        onClick={() => { setAddingTopLevel(false); setTopAddForm({ ...emptyPlanEdit(), fecha: '' }); }}
+                        className="px-4 py-2 rounded-lg text-sm"
+                        style={{ background: '#2a2d36', color: '#888' }}
+                      >
+                        Cancelar
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <button
+                  onClick={() => setAddingTopLevel(true)}
+                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm transition-all"
+                  style={{ border: '1px dashed #2a2d36', color: '#555' }}
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                  </svg>
+                  Añadir nuevo día de entreno
+                </button>
+              )}
+            </div>
+          )}
+
           {sortedDates.map((fecha) => {
             const sessions = byDate[fecha];
             const dayExercises = [...sessions].sort((a, b) => (a.orden ?? 0) - (b.orden ?? 0) || a.id - b.id);
