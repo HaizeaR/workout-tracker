@@ -15,6 +15,10 @@ export const users = pgTable('users', {
   id: serial('id').primaryKey(),
   username: text('username').notNull().unique(),
   password_hash: text('password_hash').notNull(),
+  email: text('email'),
+  is_admin: boolean('is_admin').default(false),
+  reset_token: text('reset_token'),
+  reset_token_expires: timestamp('reset_token_expires'),
   created_at: timestamp('created_at').defaultNow().notNull(),
 });
 
@@ -25,6 +29,7 @@ export const semanas = pgTable('semanas', {
     .references(() => users.id),
   anio: integer('anio').notNull(),
   semana_numero: integer('semana_numero').notNull(),
+  foco: text('foco'),
   importada_at: timestamp('importada_at').defaultNow().notNull(),
 });
 

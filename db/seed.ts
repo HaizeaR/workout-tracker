@@ -21,13 +21,40 @@ async function seed() {
       {
         username: 'haizea',
         password_hash: haizeaHash,
+        email: 'haizea@ejemplo.com',
+        is_admin: true,
       },
       {
         username: 'eder',
         password_hash: ederHash,
+        email: 'eder@ejemplo.com',
+        is_admin: false,
       },
     ])
-    .onConflictDoNothing();
+    .onConflictDoUpdate({
+      target: schema.users.username,
+      set: {
+        password_hash: haizeaHash,
+        email: 'haizea@ejemplo.com',
+        is_admin: true,
+      },
+    });
+
+  // Update eder separately since onConflictDoUpdate uses same set for all rows
+  const ederUser = await db.query.users.findFirst({
+    where: (u, { eq }) => eq(u.username, 'eder'),
+  });
+  if (ederUser) {
+    const { eq } = await import('drizzle-orm');
+    await db
+      .update(schema.users)
+      .set({
+        password_hash: ederHash,
+        email: 'eder@ejemplo.com',
+        is_admin: false,
+      })
+      .where(eq(schema.users.username, 'eder'));
+  }
 
   console.log('Users seeded successfully!');
   process.exit(0);

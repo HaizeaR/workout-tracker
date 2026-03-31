@@ -11,6 +11,7 @@ const COOKIE_NAME = 'workout_token';
 export interface JWTPayload {
   userId: number;
   username: string;
+  isAdmin: boolean;
 }
 
 export async function signToken(payload: JWTPayload): Promise<string> {

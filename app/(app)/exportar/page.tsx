@@ -9,6 +9,7 @@ export default function ExportarPage() {
   const [text, setText] = useState('');
   const [loading, setLoading] = useState(false);
   const [totalSemanas, setTotalSemanas] = useState(0);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     fetch('/api/semanas')
@@ -46,33 +47,62 @@ export default function ExportarPage() {
     URL.revokeObjectURL(url);
   }
 
+  async function handleCopy() {
+    if (!text) return;
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      // fallback silently
+    }
+  }
+
   return (
     <div className="p-4 max-w-2xl mx-auto">
-      <h1 className="text-xl font-bold text-white mb-6 pt-2">Exportar</h1>
+      <h1 className="text-xl font-bold pt-2 mb-6" style={{ color: '#f0f0f0' }}>Exportar</h1>
 
-      <div className="bg-gray-900 border border-gray-800 rounded-2xl p-4 mb-4">
-        <label className="block text-sm font-medium text-gray-300 mb-3">
+      {/* Config card */}
+      <div
+        className="rounded-2xl p-4 mb-4"
+        style={{ background: '#1a1d24', border: '1px solid #2a2d36' }}
+      >
+        <label className="block text-sm font-medium mb-3" style={{ color: '#ccc' }}>
           Número de semanas a exportar
         </label>
-        <div className="flex items-center gap-3">
+
+        <div className="flex items-center gap-3 mb-4">
           <input
             type="number"
             min="1"
             max={totalSemanas || 52}
             value={weeks}
             onChange={(e) => setWeeks(Math.max(1, parseInt(e.target.value) || 1))}
-            className="w-24 px-4 py-3 bg-gray-800 border border-gray-700 rounded-xl text-white text-center text-base focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-24 px-4 py-3 rounded-xl text-base text-center focus:outline-none"
+            style={{
+              background: '#111',
+              border: '1px solid #2a2d36',
+              color: '#f0f0f0',
+            }}
+            onFocus={(e) => (e.target.style.borderColor = '#c4f135')}
+            onBlur={(e) => (e.target.style.borderColor = '#2a2d36')}
           />
-          <span className="text-gray-400 text-sm">
+          <span className="text-sm" style={{ color: '#888' }}>
             de {totalSemanas} disponibles
           </span>
         </div>
 
-        <div className="flex gap-3 mt-4">
+        <div className="flex gap-3">
           <button
             onClick={handlePreview}
             disabled={loading}
-            className="flex-1 py-3 px-4 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white font-semibold rounded-xl transition-colors"
+            className="flex-1 py-3 px-4 font-semibold rounded-xl transition-all text-sm"
+            style={{
+              background: loading ? '#8ab030' : '#c4f135',
+              color: '#0f1117',
+              opacity: loading ? 0.8 : 1,
+              cursor: loading ? 'not-allowed' : 'pointer',
+            }}
           >
             {loading ? (
               <span className="flex items-center justify-center gap-2">
@@ -90,12 +120,17 @@ export default function ExportarPage() {
           {text && (
             <button
               onClick={handleDownload}
-              className="flex-1 py-3 px-4 bg-green-700 hover:bg-green-600 text-white font-semibold rounded-xl transition-colors flex items-center justify-center gap-2"
+              className="flex-1 py-3 px-4 font-semibold rounded-xl transition-all text-sm flex items-center justify-center gap-2"
+              style={{
+                background: '#1e2d0e',
+                color: '#8ab030',
+                border: '1px solid #3a5a1a',
+              }}
             >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
               </svg>
-              Descargar .txt
+              Descargar
             </button>
           )}
         </div>
@@ -103,31 +138,55 @@ export default function ExportarPage() {
 
       {/* Preview */}
       {text && (
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
-          <div className="px-4 py-3 bg-gray-800/50 border-b border-gray-800 flex items-center justify-between">
-            <h2 className="font-medium text-gray-200 text-sm">Vista previa</h2>
+        <div
+          className="rounded-2xl overflow-hidden"
+          style={{ background: '#1a1d24', border: '1px solid #2a2d36' }}
+        >
+          <div
+            className="px-4 py-3 flex items-center justify-between"
+            style={{ borderBottom: '1px solid #2a2d36', background: '#13161d' }}
+          >
+            <h2 className="font-medium text-sm" style={{ color: '#ccc' }}>Vista previa</h2>
             <button
-              onClick={() => {
-                navigator.clipboard?.writeText(text);
-              }}
-              className="text-gray-500 hover:text-gray-300 transition-colors text-xs flex items-center gap-1"
+              onClick={handleCopy}
+              className="flex items-center gap-1.5 text-xs transition-colors"
+              style={{ color: copied ? '#c4f135' : '#555' }}
             >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
-              </svg>
-              Copiar
+              {copied ? (
+                <>
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                  Copiado
+                </>
+              ) : (
+                <>
+                  <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                  Copiar
+                </>
+              )}
             </button>
           </div>
-          <pre className="p-4 text-xs text-gray-300 overflow-x-auto whitespace-pre-wrap font-mono leading-relaxed max-h-[60vh] overflow-y-auto">
+          <pre
+            className="p-4 text-xs overflow-x-auto whitespace-pre-wrap font-mono leading-relaxed"
+            style={{ color: '#ccc', maxHeight: '60vh', overflowY: 'auto' }}
+          >
             {text}
           </pre>
         </div>
       )}
 
       {!text && !loading && (
-        <div className="text-center py-12 text-gray-500">
-          <p className="text-4xl mb-3">📄</p>
-          <p className="text-sm">Haz clic en Vista previa para generar el resumen</p>
+        <div
+          className="rounded-2xl p-8 text-center"
+          style={{ background: '#1a1d24', border: '1px solid #2a2d36' }}
+        >
+          <svg className="w-10 h-10 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="#555" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+          </svg>
+          <p className="text-sm" style={{ color: '#555' }}>Haz clic en Vista previa para generar el resumen</p>
         </div>
       )}
     </div>
