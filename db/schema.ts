@@ -44,6 +44,7 @@ export const sesiones = pgTable('sesiones', {
   fecha: text('fecha').notNull(),
   ejercicio: text('ejercicio').notNull(),
   categoria: text('categoria'),
+  tipo: text('tipo'), // Fuerza | Running | Movilidad | Híbrido (per-day tag)
   series: integer('series'),
   reps: integer('reps'),
   peso_kg: real('peso_kg'),
@@ -52,6 +53,7 @@ export const sesiones = pgTable('sesiones', {
   sensacion: integer('sensacion'),
   dolor: boolean('dolor').default(false),
   notas: text('notas'),
+  orden: integer('orden').default(0),
   created_at: timestamp('created_at').defaultNow().notNull(),
 });
 
@@ -69,6 +71,7 @@ export const ejecuciones = pgTable('ejecuciones', {
   fecha: text('fecha').notNull(),
   ejercicio: text('ejercicio').notNull(),
   categoria: text('categoria'),
+  tipo: text('tipo'), // mirrors sesion.tipo
   series: integer('series'),
   reps: integer('reps'),
   peso_kg: real('peso_kg'),
@@ -78,6 +81,7 @@ export const ejecuciones = pgTable('ejecuciones', {
   dolor: boolean('dolor').default(false),
   notas: text('notas'),
   completado: boolean('completado').default(false),
+  orden: integer('orden').default(0),
   updated_at: timestamp('updated_at').defaultNow().notNull(),
 });
 

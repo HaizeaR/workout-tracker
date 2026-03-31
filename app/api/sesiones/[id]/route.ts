@@ -17,22 +17,28 @@ export async function PUT(
 
   try {
     const body = await req.json();
-    const { ejercicio, categoria, series, reps, peso_kg, duracion_min, distancia_km, fecha } = body;
+    const { ejercicio, categoria, series, reps, peso_kg, duracion_min, distancia_km, fecha, tipo, orden } = body;
 
     const [updated] = await db
       .update(sesiones)
-      .set({ ejercicio, categoria, series, reps, peso_kg, duracion_min, distancia_km, ...(fecha ? { fecha } : {}) })
+      .set({
+        ejercicio, categoria, series, reps, peso_kg, duracion_min, distancia_km,
+        ...(fecha !== undefined ? { fecha } : {}),
+        ...(tipo !== undefined ? { tipo } : {}),
+        ...(orden !== undefined ? { orden } : {}),
+      })
       .where(and(eq(sesiones.id, sesionId), eq(sesiones.user_id, user.userId)))
       .returning();
 
     if (!updated) return NextResponse.json({ error: 'Not found' }, { status: 404 });
 
-    // If fecha changed, update the ejecucion too
-    if (fecha) {
-      await db
-        .update(ejecuciones)
-        .set({ fecha })
-        .where(eq(ejecuciones.sesion_id, sesionId));
+    // Propagate fecha/tipo/orden changes to ejecucion
+    const ejecucionUpdates: Record<string, unknown> = {};
+    if (fecha !== undefined) ejecucionUpdates.fecha = fecha;
+    if (tipo !== undefined) ejecucionUpdates.tipo = tipo;
+    if (orden !== undefined) ejecucionUpdates.orden = orden;
+    if (Object.keys(ejecucionUpdates).length > 0) {
+      await db.update(ejecuciones).set(ejecucionUpdates).where(eq(ejecuciones.sesion_id, sesionId));
     }
 
     return NextResponse.json({ sesion: updated });

@@ -36,12 +36,19 @@ interface PlanEditState {
   reps: string;
   peso_kg: string;
   distancia_km: string;
-  duracion_min: string;
+  ritmo: string; // min/km — converted to duracion_min on save
 }
 
 const emptyPlanEdit = (): PlanEditState => ({
-  ejercicio: '', categoria: '', series: '', reps: '', peso_kg: '', distancia_km: '', duracion_min: '',
+  ejercicio: '', categoria: '', series: '', reps: '', peso_kg: '', distancia_km: '', ritmo: '',
 });
+
+const TIPO_COLORS: Record<string, { bg: string; color: string }> = {
+  Running: { bg: '#1e2d0e', color: '#c4f135' },
+  Fuerza: { bg: '#1a2540', color: '#60a5fa' },
+  Movilidad: { bg: '#2d1a3a', color: '#c084fc' },
+  Híbrido: { bg: '#2a1a0a', color: '#fb923c' },
+};
 
 function inputStyle(focused: boolean = false) {
   return {
@@ -126,6 +133,12 @@ export default function SemanaPage() {
   const [movingDay, setMovingDay] = useState<string | null>(null);
   const [moveTarget, setMoveTarget] = useState<string>('');
   const [savingMove, setSavingMove] = useState(false);
+
+  // Orden state
+  const [savingOrden, setSavingOrden] = useState<Set<number>>(new Set());
+
+  // Ritmo input state for running executions (raw string per ejecucion id)
+  const [execRitmoInput, setExecRitmoInput] = useState<Record<number, string>>({});
 
   // Refs for scrolling to days
   const dayRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -269,6 +282,8 @@ export default function SemanaPage() {
     try {
       await handleUpdate(ejecucionId, updates);
       setEditState((prev) => { const n = { ...prev }; delete n[ejecucionId]; return n; });
+      // Clear ritmo input so display reverts to computed value from saved duracion_min
+      setExecRitmoInput((prev) => { const n = { ...prev }; delete n[ejecucionId]; return n; });
     } finally {
       setSaving((prev) => { const n = new Set(prev); n.delete(ejecucionId); return n; });
     }
@@ -289,7 +304,9 @@ export default function SemanaPage() {
       reps: sesion.reps?.toString() ?? '',
       peso_kg: sesion.peso_kg?.toString() ?? '',
       distancia_km: sesion.distancia_km?.toString() ?? '',
-      duracion_min: sesion.duracion_min?.toString() ?? '',
+      ritmo: (sesion.distancia_km && sesion.duracion_min && sesion.distancia_km > 0)
+        ? (sesion.duracion_min / sesion.distancia_km).toFixed(2)
+        : '',
     });
   }
 
@@ -306,7 +323,9 @@ export default function SemanaPage() {
           reps: planForm.reps ? parseInt(planForm.reps) : null,
           peso_kg: planForm.peso_kg ? parseFloat(planForm.peso_kg) : null,
           distancia_km: planForm.distancia_km ? parseFloat(planForm.distancia_km) : null,
-          duracion_min: planForm.duracion_min ? parseFloat(planForm.duracion_min) : null,
+          duracion_min: (planForm.distancia_km && planForm.ritmo)
+            ? parseFloat(planForm.distancia_km) * parseFloat(planForm.ritmo)
+            : null,
         }),
       });
       if (!res.ok) throw new Error('Error al guardar');
@@ -350,7 +369,9 @@ export default function SemanaPage() {
           reps: addForm.reps ? parseInt(addForm.reps) : null,
           peso_kg: addForm.peso_kg ? parseFloat(addForm.peso_kg) : null,
           distancia_km: addForm.distancia_km ? parseFloat(addForm.distancia_km) : null,
-          duracion_min: addForm.duracion_min ? parseFloat(addForm.duracion_min) : null,
+          duracion_min: (addForm.distancia_km && addForm.ritmo)
+            ? parseFloat(addForm.distancia_km) * parseFloat(addForm.ritmo)
+            : null,
         }),
       });
       if (!res.ok) throw new Error('Error al añadir');
@@ -380,7 +401,9 @@ export default function SemanaPage() {
           reps: topAddForm.reps ? parseInt(topAddForm.reps) : null,
           peso_kg: topAddForm.peso_kg ? parseFloat(topAddForm.peso_kg) : null,
           distancia_km: topAddForm.distancia_km ? parseFloat(topAddForm.distancia_km) : null,
-          duracion_min: topAddForm.duracion_min ? parseFloat(topAddForm.duracion_min) : null,
+          duracion_min: (topAddForm.distancia_km && topAddForm.ritmo)
+            ? parseFloat(topAddForm.distancia_km) * parseFloat(topAddForm.ritmo)
+            : null,
         }),
       });
       if (!res.ok) throw new Error('Error al añadir');
@@ -425,6 +448,53 @@ export default function SemanaPage() {
     }
   }
 
+  async function handleMoveExercise(fecha: string, sesionId: number, direction: 'up' | 'down') {
+    const dayExercises = [...(detail?.plan.filter((s) => s.fecha === fecha) ?? [])]
+      .sort((a, b) => (a.orden ?? 0) - (b.orden ?? 0) || a.id - b.id);
+    const idx = dayExercises.findIndex((s) => s.id === sesionId);
+    if (direction === 'up' && idx === 0) return;
+    if (direction === 'down' && idx === dayExercises.length - 1) return;
+
+    const swapIdx = direction === 'up' ? idx - 1 : idx + 1;
+    const thisEl = dayExercises[idx];
+    const swapEl = dayExercises[swapIdx];
+
+    const thisOrden = thisEl.orden ?? idx;
+    const swapOrden = swapEl.orden ?? swapIdx;
+
+    setSavingOrden((prev) => { const n = new Set(prev); n.add(thisEl.id); n.add(swapEl.id); return n; });
+    try {
+      await Promise.all([
+        fetch(`/api/sesiones/${thisEl.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ orden: swapOrden }) }),
+        fetch(`/api/sesiones/${swapEl.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ orden: thisOrden }) }),
+      ]);
+      setDetail((prev) => prev ? {
+        ...prev,
+        plan: prev.plan.map((s) => {
+          if (s.id === thisEl.id) return { ...s, orden: swapOrden };
+          if (s.id === swapEl.id) return { ...s, orden: thisOrden };
+          return s;
+        }),
+      } : prev);
+    } finally {
+      setSavingOrden((prev) => { const n = new Set(prev); n.delete(thisEl.id); n.delete(swapEl.id); return n; });
+    }
+  }
+
+  async function handleSetDayTipo(fecha: string, tipo: string) {
+    const daySessions = detail?.plan.filter((s) => s.fecha === fecha) ?? [];
+    const currentTipo = daySessions[0]?.tipo ?? null;
+    const newTipo = currentTipo === tipo ? null : tipo;
+
+    await Promise.all(daySessions.map((s) =>
+      fetch(`/api/sesiones/${s.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ tipo: newTipo }) })
+    ));
+    setDetail((prev) => prev ? {
+      ...prev,
+      plan: prev.plan.map((s) => s.fecha === fecha ? { ...s, tipo: newTipo } : s),
+    } : prev);
+  }
+
   function toggleDay(fecha: string) {
     setOpenDays((prev) => { const n = new Set(prev); n.has(fecha) ? n.delete(fecha) : n.add(fecha); return n; });
   }
@@ -446,6 +516,9 @@ export default function SemanaPage() {
     acc[s.fecha].push(s);
     return acc;
   }, {});
+  for (const key of Object.keys(byDate)) {
+    byDate[key].sort((a, b) => (a.orden ?? 0) - (b.orden ?? 0) || a.id - b.id);
+  }
   const sortedDates = Object.keys(byDate).sort();
   const weekRangeLabel = formatWeekRange(weekDays);
   const isEmptySemana = selectedId !== null && detail !== null && sortedDates.length === 0;
@@ -636,12 +709,12 @@ export default function SemanaPage() {
                     { key: 'reps', label: 'Reps' },
                     { key: 'peso_kg', label: 'Peso kg' },
                     { key: 'distancia_km', label: 'Dist km' },
-                    { key: 'duracion_min', label: 'Dur min' },
+                    { key: 'ritmo', label: 'Ritmo min/km' },
                   ].map(({ key, label }) => (
                     <div key={key}>
                       <label className="block text-xs mb-1" style={{ color: '#555' }}>{label}</label>
                       <input
-                        type="number" min="0" step="0.1"
+                        type="number" min="0" step="0.05"
                         value={topAddForm[key as keyof PlanEditState]}
                         onChange={(e) => setTopAddForm((p) => ({ ...p, [key]: e.target.value }))}
                         className="w-full px-2 py-1.5 rounded-lg text-center text-sm focus:outline-none"
@@ -693,6 +766,7 @@ export default function SemanaPage() {
         <div className="space-y-3">
           {sortedDates.map((fecha) => {
             const sessions = byDate[fecha];
+            const dayExercises = [...sessions].sort((a, b) => (a.orden ?? 0) - (b.orden ?? 0) || a.id - b.id);
             const isOpen = openDays.has(fecha);
             const allEjecs = sessions.map((s) => getEjecucion(s.id)).filter(Boolean) as Ejecucion[];
             const doneCount = allEjecs.filter((e) => e.completado).length;
@@ -718,6 +792,10 @@ export default function SemanaPage() {
                       {isToday && <span className="w-2 h-2 rounded-full" style={{ background: '#c4f135' }} />}
                       <span className="font-medium text-sm capitalize" style={{ color: allDone ? '#8ab030' : '#f0f0f0' }}>{dateLabel}</span>
                       {isToday && <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: '#c4f135', color: '#0f1117' }}>hoy</span>}
+                      {sessions[0]?.tipo && (() => {
+                        const s = TIPO_COLORS[sessions[0].tipo!];
+                        return s ? <span className="text-xs px-1.5 py-0.5 rounded font-medium" style={{ background: s.bg, color: s.color }}>{sessions[0].tipo}</span> : null;
+                      })()}
                     </div>
                     <div className="flex items-center gap-2">
                       {/* Move day button */}
@@ -770,7 +848,28 @@ export default function SemanaPage() {
                 {/* Exercise cards */}
                 {isOpen && (
                   <div className="divide-y" style={{ borderColor: '#2a2d36' }}>
-                    {sessions.map((sesion) => {
+                    {/* Tipo selector for this day */}
+                    <div className="px-4 py-2 flex items-center gap-2 flex-wrap" style={{ background: '#13161d' }}>
+                      <span className="text-xs" style={{ color: '#555' }}>Tipo:</span>
+                      {(['Running', 'Fuerza', 'Movilidad', 'Híbrido'] as const).map((tipo) => {
+                        const dayTipo = sessions[0]?.tipo ?? null;
+                        const isActive = dayTipo === tipo;
+                        const ts = TIPO_COLORS[tipo];
+                        return (
+                          <button
+                            key={tipo}
+                            onClick={() => handleSetDayTipo(fecha, tipo)}
+                            className="px-2.5 py-0.5 rounded-full text-xs font-medium transition-all"
+                            style={isActive
+                              ? { background: ts.bg, color: ts.color, border: `1px solid ${ts.color}` }
+                              : { background: 'transparent', color: '#555', border: '1px solid #2a2d36' }}
+                          >
+                            {tipo}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    {dayExercises.map((sesion) => {
                       const ejec = getEjecucion(sesion.id);
                       if (!ejec) return null;
 
@@ -786,10 +885,12 @@ export default function SemanaPage() {
                       const isRunning = !!(sesion.distancia_km && sesion.distancia_km > 0)
                         || CARDIO_CATS.some((c) => sesion.categoria?.toLowerCase().includes(c) || sesion.ejercicio.toLowerCase().includes(c));
 
+                      const planRitmo = (sesion.distancia_km && sesion.duracion_min && sesion.distancia_km > 0)
+                        ? sesion.duracion_min / sesion.distancia_km : null;
                       const planSummary = isRunning
                         ? [
                             sesion.distancia_km ? `${sesion.distancia_km} km` : null,
-                            sesion.duracion_min ? `${sesion.duracion_min} min` : null,
+                            planRitmo ? `${Math.floor(planRitmo)}:${String(Math.round((planRitmo % 1) * 60)).padStart(2, '0')}/km` : null,
                           ].filter(Boolean).join(' · ')
                         : [
                             sesion.series && sesion.reps ? `${sesion.series}×${sesion.reps}` : null,
@@ -799,6 +900,14 @@ export default function SemanaPage() {
                       const execDist = getFieldValue(ejec, 'distancia_km') as number | null;
                       const execDur = getFieldValue(ejec, 'duracion_min') as number | null;
                       const pace = execDist && execDur && execDist > 0 ? execDur / execDist : null;
+
+                      // Ritmo input: use raw input if user is editing, else derive from stored values
+                      const ritmoInputVal = execRitmoInput[ejec.id] !== undefined
+                        ? execRitmoInput[ejec.id]
+                        : (execDist && execDur && execDist > 0 ? (execDur / execDist).toFixed(2) : '');
+                      const kmh = ritmoInputVal && parseFloat(ritmoInputVal) > 0
+                        ? (60 / parseFloat(ritmoInputVal)).toFixed(1)
+                        : null;
 
                       return (
                         <div key={sesion.id} className="px-4 py-4" style={{ background: completado ? '#162012' : '#111720' }}>
@@ -811,6 +920,31 @@ export default function SemanaPage() {
                               {planSummary && <p className="text-xs mt-1" style={{ color: '#555' }}>Plan: {planSummary}</p>}
                             </div>
                             <div className="flex items-center gap-1.5 ml-2 flex-shrink-0">
+                              {/* Order up/down (only if multiple exercises on same day) */}
+                              {dayExercises.length > 1 && (
+                                <>
+                                  <button
+                                    onClick={() => handleMoveExercise(fecha, sesion.id, 'up')}
+                                    disabled={savingOrden.has(sesion.id) || dayExercises[0].id === sesion.id}
+                                    className="w-6 h-6 rounded flex items-center justify-center"
+                                    style={{ opacity: dayExercises[0].id === sesion.id ? 0.2 : 1 }}
+                                  >
+                                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="#888" strokeWidth={2.5}>
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
+                                    </svg>
+                                  </button>
+                                  <button
+                                    onClick={() => handleMoveExercise(fecha, sesion.id, 'down')}
+                                    disabled={savingOrden.has(sesion.id) || dayExercises[dayExercises.length - 1].id === sesion.id}
+                                    className="w-6 h-6 rounded flex items-center justify-center"
+                                    style={{ opacity: dayExercises[dayExercises.length - 1].id === sesion.id ? 0.2 : 1 }}
+                                  >
+                                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="#888" strokeWidth={2.5}>
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                  </button>
+                                </>
+                              )}
                               {/* Edit plan button */}
                               <button
                                 onClick={() => isEditingThis ? setEditingPlan(null) : startEditPlan(sesion)}
@@ -897,14 +1031,14 @@ export default function SemanaPage() {
                                   ))}
                                   {[
                                     { key: 'distancia_km', label: 'Dist km' },
-                                    { key: 'duracion_min', label: 'Dur min' },
+                                    { key: 'ritmo', label: 'Ritmo min/km' },
                                   ].map(({ key, label }) => (
                                     <div key={key}>
                                       <label className="block text-xs mb-1" style={{ color: '#555' }}>{label}</label>
                                       <input
                                         type="number"
                                         min="0"
-                                        step="0.1"
+                                        step="0.05"
                                         value={planForm[key as keyof PlanEditState]}
                                         onChange={(e) => setPlanForm((p) => ({ ...p, [key]: e.target.value }))}
                                         className="w-full px-2 py-1.5 rounded-lg text-center text-sm focus:outline-none"
@@ -938,28 +1072,52 @@ export default function SemanaPage() {
                           {isRunning ? (
                             <div className="mb-3">
                               <div className="grid grid-cols-2 gap-2 mb-2">
-                                {[
-                                  { field: 'distancia_km' as keyof Ejecucion, label: 'Distancia', unit: 'km', step: '0.1' },
-                                  { field: 'duracion_min' as keyof Ejecucion, label: 'Duración', unit: 'min', step: '1' },
-                                ].map(({ field, label, unit, step }) => (
-                                  <div key={field} className="rounded-xl p-3 text-center" style={{ background: '#111', border: '1px solid #2a2d36' }}>
-                                    <label className="block text-xs mb-1" style={{ color: '#555' }}>{label}</label>
-                                    <input
-                                      type="number" min="0" step={step}
-                                      value={(getFieldValue(ejec, field) as string | number) ?? ''}
-                                      onChange={(e) => handleChange(ejec.id, field, e.target.value ? parseFloat(e.target.value) : null)}
-                                      className="w-full bg-transparent text-center text-2xl font-bold focus:outline-none"
-                                      style={{ color: '#f0f0f0' }}
-                                    />
-                                    <span className="text-xs" style={{ color: '#555' }}>{unit}</span>
-                                  </div>
-                                ))}
+                                {/* Distancia */}
+                                <div className="rounded-xl p-3 text-center" style={{ background: '#111', border: '1px solid #2a2d36' }}>
+                                  <label className="block text-xs mb-1" style={{ color: '#555' }}>Distancia</label>
+                                  <input
+                                    type="number" min="0" step="0.1"
+                                    value={(getFieldValue(ejec, 'distancia_km') as string | number) ?? ''}
+                                    onChange={(e) => {
+                                      const dist = e.target.value ? parseFloat(e.target.value) : null;
+                                      handleChange(ejec.id, 'distancia_km', dist);
+                                      const ritmo = ritmoInputVal ? parseFloat(ritmoInputVal) : null;
+                                      if (dist && ritmo && !isNaN(ritmo)) {
+                                        handleChange(ejec.id, 'duracion_min', parseFloat((dist * ritmo).toFixed(2)));
+                                      }
+                                    }}
+                                    className="w-full bg-transparent text-center text-2xl font-bold focus:outline-none"
+                                    style={{ color: '#f0f0f0' }}
+                                  />
+                                  <span className="text-xs" style={{ color: '#555' }}>km</span>
+                                </div>
+                                {/* Ritmo */}
+                                <div className="rounded-xl p-3 text-center" style={{ background: '#111', border: '1px solid #2a2d36' }}>
+                                  <label className="block text-xs mb-1" style={{ color: '#555' }}>Ritmo</label>
+                                  <input
+                                    type="number" min="0" step="0.05"
+                                    value={ritmoInputVal}
+                                    onChange={(e) => {
+                                      const raw = e.target.value;
+                                      setExecRitmoInput((prev) => ({ ...prev, [ejec.id]: raw }));
+                                      const ritmo = raw ? parseFloat(raw) : null;
+                                      const dist = execDist ?? (editState[ejec.id]?.distancia_km as number | undefined) ?? null;
+                                      if (ritmo && dist && !isNaN(ritmo)) {
+                                        handleChange(ejec.id, 'duracion_min', parseFloat((dist * ritmo).toFixed(2)));
+                                      }
+                                    }}
+                                    className="w-full bg-transparent text-center text-2xl font-bold focus:outline-none"
+                                    style={{ color: '#f0f0f0' }}
+                                  />
+                                  <span className="text-xs" style={{ color: '#555' }}>min/km</span>
+                                  {kmh && <span className="text-xs block mt-0.5" style={{ color: '#555' }}>{kmh} km/h</span>}
+                                </div>
                               </div>
                               {pace && (
                                 <div className="rounded-xl px-4 py-2 flex items-center justify-between" style={{ background: '#1e2a10', border: '1px solid #3a4a1a' }}>
-                                  <span className="text-xs" style={{ color: '#8ab030' }}>Ritmo</span>
+                                  <span className="text-xs" style={{ color: '#8ab030' }}>Guardado</span>
                                   <span className="text-sm font-semibold" style={{ color: '#c4f135' }}>
-                                    {Math.floor(pace)}:{String(Math.round((pace % 1) * 60)).padStart(2, '0')} min/km
+                                    {Math.floor(pace)}:{String(Math.round((pace % 1) * 60)).padStart(2, '0')} min/km · {(60 / pace).toFixed(1)} km/h
                                   </span>
                                 </div>
                               )}
@@ -1074,7 +1232,7 @@ export default function SemanaPage() {
                                 { key: 'reps', label: 'Reps' },
                                 { key: 'peso_kg', label: 'Peso kg' },
                                 { key: 'distancia_km', label: 'Dist km' },
-                                { key: 'duracion_min', label: 'Dur min' },
+                                { key: 'ritmo', label: 'Ritmo min/km' },
                               ].map(({ key, label }) => (
                                 <div key={key}>
                                   <label className="block text-xs mb-1" style={{ color: '#555' }}>{label}</label>

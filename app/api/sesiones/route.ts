@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { semana_id, fecha, ejercicio, categoria, series, reps, peso_kg, duracion_min, distancia_km } = body;
+    const { semana_id, fecha, ejercicio, categoria, tipo, series, reps, peso_kg, duracion_min, distancia_km, orden } = body;
 
     if (!semana_id || !fecha || !ejercicio) {
       return NextResponse.json({ error: 'semana_id, fecha y ejercicio son obligatorios' }, { status: 400 });
@@ -23,11 +23,13 @@ export async function POST(req: NextRequest) {
       fecha,
       ejercicio,
       categoria: categoria || null,
+      tipo: tipo || null,
       series: series || null,
       reps: reps || null,
       peso_kg: peso_kg || null,
       duracion_min: duracion_min || null,
       distancia_km: distancia_km || null,
+      orden: orden ?? 0,
     }).returning();
 
     // Auto-create ejecucion as copy of plan
@@ -38,12 +40,14 @@ export async function POST(req: NextRequest) {
       fecha,
       ejercicio,
       categoria: categoria || null,
+      tipo: tipo || null,
       series: series || null,
       reps: reps || null,
       peso_kg: peso_kg || null,
       duracion_min: duracion_min || null,
       distancia_km: distancia_km || null,
       completado: false,
+      orden: orden ?? 0,
     }).returning();
 
     // Auto-detect foco if semana has no foco set yet
