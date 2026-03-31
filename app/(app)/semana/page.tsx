@@ -448,12 +448,25 @@ export default function SemanaPage() {
                       const isEditingThis = editingPlan === sesion.id;
                       const isDeleting = deletingId === sesion.id;
 
-                      const planSummary = [
-                        sesion.series && sesion.reps ? `${sesion.series}×${sesion.reps}` : null,
-                        sesion.peso_kg ? `@${sesion.peso_kg}kg` : null,
-                        sesion.distancia_km ? `${sesion.distancia_km}km` : null,
-                        sesion.duracion_min ? `${sesion.duracion_min}min` : null,
-                      ].filter(Boolean).join(' ');
+                      // Detect running: has distance in plan, or cardio-related category
+                      const CARDIO_CATS = ['cardio', 'running', 'carrera', 'correr', 'trail', 'ciclismo', 'bici', 'natación', 'swim'];
+                      const isRunning = !!(sesion.distancia_km && sesion.distancia_km > 0)
+                        || CARDIO_CATS.some((c) => sesion.categoria?.toLowerCase().includes(c) || sesion.ejercicio.toLowerCase().includes(c));
+
+                      const planSummary = isRunning
+                        ? [
+                            sesion.distancia_km ? `${sesion.distancia_km} km` : null,
+                            sesion.duracion_min ? `${sesion.duracion_min} min` : null,
+                          ].filter(Boolean).join(' · ')
+                        : [
+                            sesion.series && sesion.reps ? `${sesion.series}×${sesion.reps}` : null,
+                            sesion.peso_kg ? `@${sesion.peso_kg}kg` : null,
+                          ].filter(Boolean).join(' ');
+
+                      // Running pace from execution values
+                      const execDist = getFieldValue(ejec, 'distancia_km') as number | null;
+                      const execDur = getFieldValue(ejec, 'duracion_min') as number | null;
+                      const pace = execDist && execDur && execDist > 0 ? execDur / execDist : null;
 
                       return (
                         <div key={sesion.id} className="px-4 py-4" style={{ background: completado ? '#162012' : '#111720' }}>
@@ -590,51 +603,59 @@ export default function SemanaPage() {
                           )}
 
                           {/* Execution inputs */}
-                          <div className="grid grid-cols-3 gap-2 mb-3">
-                            {(sesion.series !== null || sesion.reps !== null || sesion.peso_kg !== null) && (
-                              <>
+                          {isRunning ? (
+                            <div className="mb-3">
+                              {/* Running layout: big dist + dur + pace */}
+                              <div className="grid grid-cols-2 gap-2 mb-2">
                                 {[
-                                  { field: 'series' as keyof Ejecucion, label: 'Series', step: '1' },
-                                  { field: 'reps' as keyof Ejecucion, label: 'Reps', step: '1' },
-                                  { field: 'peso_kg' as keyof Ejecucion, label: 'Peso (kg)', step: '0.5' },
-                                ].map(({ field, label, step }) => (
-                                  <div key={field}>
+                                  { field: 'distancia_km' as keyof Ejecucion, label: 'Distancia', unit: 'km', step: '0.1' },
+                                  { field: 'duracion_min' as keyof Ejecucion, label: 'Duración', unit: 'min', step: '1' },
+                                ].map(({ field, label, unit, step }) => (
+                                  <div key={field} className="rounded-xl p-3 text-center" style={{ background: '#111', border: '1px solid #2a2d36' }}>
                                     <label className="block text-xs mb-1" style={{ color: '#555' }}>{label}</label>
                                     <input
                                       type="number" min="0" step={step}
                                       value={(getFieldValue(ejec, field) as string | number) ?? ''}
                                       onChange={(e) => handleChange(ejec.id, field, e.target.value ? parseFloat(e.target.value) : null)}
-                                      className="w-full px-2 py-1.5 rounded-lg text-center text-sm focus:outline-none"
-                                      style={{ background: '#111', border: '1px solid #2a2d36', color: '#f0f0f0' }}
-                                      onFocus={(e) => (e.target.style.borderColor = '#c4f135')}
-                                      onBlur={(e) => (e.target.style.borderColor = '#2a2d36')}
+                                      className="w-full bg-transparent text-center text-2xl font-bold focus:outline-none"
+                                      style={{ color: '#f0f0f0' }}
                                     />
+                                    <span className="text-xs" style={{ color: '#555' }}>{unit}</span>
                                   </div>
                                 ))}
-                              </>
-                            )}
-                            {(sesion.distancia_km !== null || sesion.duracion_min !== null) && (
-                              <>
-                                {[
-                                  { field: 'distancia_km' as keyof Ejecucion, label: 'Dist (km)', step: '0.1' },
-                                  { field: 'duracion_min' as keyof Ejecucion, label: 'Dur (min)', step: '1' },
-                                ].map(({ field, label, step }) => (
-                                  <div key={field}>
-                                    <label className="block text-xs mb-1" style={{ color: '#555' }}>{label}</label>
-                                    <input
-                                      type="number" min="0" step={step}
-                                      value={(getFieldValue(ejec, field) as string | number) ?? ''}
-                                      onChange={(e) => handleChange(ejec.id, field, e.target.value ? parseFloat(e.target.value) : null)}
-                                      className="w-full px-2 py-1.5 rounded-lg text-center text-sm focus:outline-none"
-                                      style={{ background: '#111', border: '1px solid #2a2d36', color: '#f0f0f0' }}
-                                      onFocus={(e) => (e.target.style.borderColor = '#c4f135')}
-                                      onBlur={(e) => (e.target.style.borderColor = '#2a2d36')}
-                                    />
-                                  </div>
-                                ))}
-                              </>
-                            )}
-                          </div>
+                              </div>
+                              {/* Pace display */}
+                              {pace && (
+                                <div className="rounded-xl px-4 py-2 flex items-center justify-between" style={{ background: '#1e2a10', border: '1px solid #3a4a1a' }}>
+                                  <span className="text-xs" style={{ color: '#8ab030' }}>Ritmo</span>
+                                  <span className="text-sm font-semibold" style={{ color: '#c4f135' }}>
+                                    {Math.floor(pace)}:{String(Math.round((pace % 1) * 60)).padStart(2, '0')} min/km
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          ) : (
+                            <div className="grid grid-cols-3 gap-2 mb-3">
+                              {[
+                                { field: 'series' as keyof Ejecucion, label: 'Series', step: '1' },
+                                { field: 'reps' as keyof Ejecucion, label: 'Reps', step: '1' },
+                                { field: 'peso_kg' as keyof Ejecucion, label: 'Peso (kg)', step: '0.5' },
+                              ].map(({ field, label, step }) => (
+                                <div key={field}>
+                                  <label className="block text-xs mb-1" style={{ color: '#555' }}>{label}</label>
+                                  <input
+                                    type="number" min="0" step={step}
+                                    value={(getFieldValue(ejec, field) as string | number) ?? ''}
+                                    onChange={(e) => handleChange(ejec.id, field, e.target.value ? parseFloat(e.target.value) : null)}
+                                    className="w-full px-2 py-1.5 rounded-lg text-center text-sm focus:outline-none"
+                                    style={{ background: '#111', border: '1px solid #2a2d36', color: '#f0f0f0' }}
+                                    onFocus={(e) => (e.target.style.borderColor = '#c4f135')}
+                                    onBlur={(e) => (e.target.style.borderColor = '#2a2d36')}
+                                  />
+                                </div>
+                              ))}
+                            </div>
+                          )}
 
                           {/* Sensacion + dolor */}
                           <div className="flex flex-wrap items-center gap-2 mb-3">
