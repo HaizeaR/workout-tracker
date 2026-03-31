@@ -50,10 +50,10 @@ export function parseCsv(content: string): ParsedSesion[] {
     duracion_min: row.duracion_min ? parseFloat(row.duracion_min) || null : null,
     distancia_km: row.distancia_km ? parseFloat(row.distancia_km) || null : null,
     sensacion: row.sensacion ? parseInt(row.sensacion, 10) || null : null,
-    dolor:
-      row.dolor?.trim().toLowerCase() === 'si' ||
-      row.dolor?.trim().toLowerCase() === 'true' ||
-      row.dolor?.trim() === '1',
+    dolor: (() => {
+      const d = row.dolor?.trim().toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '') ?? '';
+      return d === 'si' || d === 'true' || d === '1' || d === 'yes';
+    })(),
     notas: row.notas?.trim() || null,
   }));
 }
