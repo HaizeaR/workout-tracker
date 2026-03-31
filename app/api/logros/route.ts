@@ -33,7 +33,8 @@ export async function GET(req: NextRequest) {
     const allExecs = await db.select().from(ejecuciones).where(eq(ejecuciones.user_id, targetUserId));
     const completedExecs = allExecs.filter((e) => e.completado);
 
-    const totalCompletadas = completedExecs.length;
+    // Count unique completed training days (1 day = 1 sesión)
+    const totalCompletadas = new Set(completedExecs.map((e) => e.fecha)).size;
     const totalDistanciaKm = completedExecs.reduce((sum, e) => sum + (e.distancia_km ?? 0), 0);
     const mejorCarreraKm = completedExecs.reduce((max, e) => Math.max(max, e.distancia_km ?? 0), 0);
 

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import CsvUpload from '@/components/CsvUpload';
+import { TIPO_COLORS } from '@/lib/tipo-colors';
 
 interface DashboardData {
   weeklyStats: {
@@ -53,13 +54,6 @@ interface SemanaDetail {
 }
 
 const FOCOS = ['Gym', 'Running', 'Híbrido', 'Fuerza', 'Movilidad', 'Otro'];
-
-const TIPO_COLORS: Record<string, { bg: string; color: string }> = {
-  Fuerza: { bg: '#1a2540', color: '#60a5fa' },
-  Running: { bg: '#1e2d0e', color: '#c4f135' },
-  Movilidad: { bg: '#2d1a3a', color: '#c084fc' },
-  Híbrido: { bg: '#2a1a0a', color: '#fb923c' },
-};
 
 function getWeekDays(refDate: Date): { date: Date; dayLabel: string; dayNum: number; dayKey: string }[] {
   const dow = refDate.getDay();

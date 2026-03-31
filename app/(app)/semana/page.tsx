@@ -43,12 +43,7 @@ const emptyPlanEdit = (): PlanEditState => ({
   ejercicio: '', categoria: '', series: '', reps: '', peso_kg: '', distancia_km: '', ritmo: '',
 });
 
-const TIPO_COLORS: Record<string, { bg: string; color: string }> = {
-  Running: { bg: '#1e2d0e', color: '#c4f135' },
-  Fuerza: { bg: '#1a2540', color: '#60a5fa' },
-  Movilidad: { bg: '#2d1a3a', color: '#c084fc' },
-  Híbrido: { bg: '#2a1a0a', color: '#fb923c' },
-};
+import { TIPO_COLORS, TIPOS } from '@/lib/tipo-colors';
 
 function inputStyle(focused: boolean = false) {
   return {
@@ -875,7 +870,7 @@ export default function SemanaPage() {
                     {/* Tipo selector for this day */}
                     <div className="px-4 py-2 flex items-center gap-2 flex-wrap" style={{ background: '#13161d' }}>
                       <span className="text-xs" style={{ color: '#555' }}>Tipo:</span>
-                      {(['Running', 'Fuerza', 'Movilidad', 'Híbrido'] as const).map((tipo) => {
+                      {TIPOS.map((tipo) => {
                         const dayTipo = sessions[0]?.tipo ?? null;
                         const isActive = dayTipo === tipo;
                         const ts = TIPO_COLORS[tipo];
