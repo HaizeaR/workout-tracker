@@ -60,9 +60,13 @@ export async function GET() {
         tipoBreakdown[tipo] = (tipoBreakdown[tipo] ?? 0) + 1;
       }
 
+      // Count unique training days (not individual exercises)
+      const totalDays = new Set(exec.map((e) => e.fecha)).size;
+      const completedDays = new Set(completed.map((e) => e.fecha)).size;
+
       weeklyStats = {
-        totalEjercicios: exec.length,
-        completados: completed.length,
+        totalEjercicios: totalDays,
+        completados: completedDays,
         totalDistancia: completed.reduce((sum, e) => sum + (e.distancia_km ?? 0), 0),
         tipoBreakdown,
       };

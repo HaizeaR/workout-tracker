@@ -181,13 +181,7 @@ export default function SemanaPage() {
       .then((r) => r.json())
       .then((d) => {
         setDetail(d);
-        const today = new Date().toISOString().slice(0, 10);
-        if (d.plan?.some((s: Sesion) => s.fecha === today)) {
-          setOpenDays(new Set([today]));
-        } else if (d.plan?.length > 0) {
-          const firstDate = [...new Set(d.plan.map((s: Sesion) => s.fecha))].sort()[0] as string;
-          setOpenDays(new Set([firstDate]));
-        }
+        // All days collapsed by default — user opens manually
       })
       .catch(console.error)
       .finally(() => setLoadingDetail(false));

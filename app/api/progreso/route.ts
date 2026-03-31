@@ -3,7 +3,7 @@ import { NextResponse } from 'next/server';
 import { getAuthUser } from '@/lib/auth';
 import { db } from '@/db';
 import { semanas, ejecuciones } from '@/db/schema';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, and } from 'drizzle-orm';
 
 export async function GET() {
   const user = await getAuthUser();
@@ -33,7 +33,7 @@ export async function GET() {
       const exec = await db
         .select()
         .from(ejecuciones)
-        .where(eq(ejecuciones.semana_id, semana.id));
+        .where(and(eq(ejecuciones.semana_id, semana.id), eq(ejecuciones.completado, true)));
 
       const semanaLabel = `S${semana.semana_numero}/${semana.anio}`;
 
