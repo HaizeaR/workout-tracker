@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getAuthUser } from '@/lib/auth';
 import { db } from '@/db';
 import { sesiones, ejecuciones, semanas } from '@/db/schema';
-import { eq } from 'drizzle-orm';
+import { eq, and, inArray } from 'drizzle-orm';
 
 export async function POST(req: NextRequest) {
   const user = await getAuthUser();
@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { semana_id, fecha, ejercicio, categoria, tipo, series, reps, peso_kg, duracion_min, distancia_km, orden } = body;
+    const { semana_id, fecha, ejercicio, categoria, tipo, bloque, tipo_bloque, series, reps, peso_kg, duracion_min, distancia_km, orden } = body;
 
     if (!semana_id || !fecha || !ejercicio) {
       return NextResponse.json({ error: 'semana_id, fecha y ejercicio son obligatorios' }, { status: 400 });
@@ -24,6 +24,8 @@ export async function POST(req: NextRequest) {
       ejercicio,
       categoria: categoria || null,
       tipo: tipo || null,
+      bloque: bloque || null,
+      tipo_bloque: tipo_bloque || null,
       series: series || null,
       reps: reps || null,
       peso_kg: peso_kg || null,
@@ -41,6 +43,8 @@ export async function POST(req: NextRequest) {
       ejercicio,
       categoria: categoria || null,
       tipo: tipo || null,
+      bloque: bloque || null,
+      tipo_bloque: tipo_bloque || null,
       series: series || null,
       reps: reps || null,
       peso_kg: peso_kg || null,
@@ -77,6 +81,36 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ sesion, ejecucion });
   } catch (error) {
     console.error('Create sesion error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+
+export async function DELETE(req: NextRequest) {
+  const user = await getAuthUser();
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  const { searchParams } = new URL(req.url);
+  const fecha = searchParams.get('fecha');
+
+  if (!fecha || !/^\d{4}-\d{2}-\d{2}$/.test(fecha)) {
+    return NextResponse.json({ error: 'fecha param required (YYYY-MM-DD)' }, { status: 400 });
+  }
+
+  try {
+    const toDelete = await db
+      .select({ id: sesiones.id })
+      .from(sesiones)
+      .where(and(eq(sesiones.user_id, user.userId), eq(sesiones.fecha, fecha)));
+
+    if (toDelete.length > 0) {
+      const ids = toDelete.map((s) => s.id);
+      await db.delete(ejecuciones).where(inArray(ejecuciones.sesion_id, ids));
+      await db.delete(sesiones).where(inArray(sesiones.id, ids));
+    }
+
+    return NextResponse.json({ success: true, deleted: toDelete.length });
+  } catch (error) {
+    console.error('Delete day error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

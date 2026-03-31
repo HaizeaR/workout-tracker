@@ -17,7 +17,7 @@ export async function PUT(
 
   try {
     const body = await req.json();
-    const { ejercicio, categoria, series, reps, peso_kg, duracion_min, distancia_km, fecha, tipo, orden } = body;
+    const { ejercicio, categoria, series, reps, peso_kg, duracion_min, distancia_km, fecha, tipo, orden, bloque, tipo_bloque } = body;
 
     const [updated] = await db
       .update(sesiones)
@@ -26,6 +26,8 @@ export async function PUT(
         ...(fecha !== undefined ? { fecha } : {}),
         ...(tipo !== undefined ? { tipo } : {}),
         ...(orden !== undefined ? { orden } : {}),
+        ...(bloque !== undefined ? { bloque } : {}),
+        ...(tipo_bloque !== undefined ? { tipo_bloque } : {}),
       })
       .where(and(eq(sesiones.id, sesionId), eq(sesiones.user_id, user.userId)))
       .returning();
@@ -37,6 +39,8 @@ export async function PUT(
     if (fecha !== undefined) ejecucionUpdates.fecha = fecha;
     if (tipo !== undefined) ejecucionUpdates.tipo = tipo;
     if (orden !== undefined) ejecucionUpdates.orden = orden;
+    if (bloque !== undefined) ejecucionUpdates.bloque = bloque;
+    if (tipo_bloque !== undefined) ejecucionUpdates.tipo_bloque = tipo_bloque;
     if (Object.keys(ejecucionUpdates).length > 0) {
       await db.update(ejecuciones).set(ejecucionUpdates).where(eq(ejecuciones.sesion_id, sesionId));
     }

@@ -45,6 +45,8 @@ export const sesiones = pgTable('sesiones', {
   ejercicio: text('ejercicio').notNull(),
   categoria: text('categoria'),
   tipo: text('tipo'), // Fuerza | Running | Movilidad | Híbrido (per-day tag)
+  bloque: text('bloque'),      // e.g. "HYROX", "Metcon A", "Calentamiento"
+  tipo_bloque: text('tipo_bloque'), // e.g. "circuito", "amrap", "series", "libre"
   series: integer('series'),
   reps: integer('reps'),
   peso_kg: real('peso_kg'),
@@ -72,6 +74,8 @@ export const ejecuciones = pgTable('ejecuciones', {
   ejercicio: text('ejercicio').notNull(),
   categoria: text('categoria'),
   tipo: text('tipo'), // mirrors sesion.tipo
+  bloque: text('bloque'),
+  tipo_bloque: text('tipo_bloque'),
   series: integer('series'),
   reps: integer('reps'),
   peso_kg: real('peso_kg'),

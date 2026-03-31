@@ -5,7 +5,7 @@ import { db } from '@/db';
 import { semanas, sesiones, ejecuciones } from '@/db/schema';
 import { parseCsv } from '@/lib/csv';
 import { checkAndUpdateRecords } from '@/lib/records';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, inArray } from 'drizzle-orm';
 
 function getISOWeekYear(dateStr: string): { week: number; year: number } {
   const d = new Date(dateStr + 'T12:00:00');
@@ -50,13 +50,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No se encontraron fechas válidas en el CSV' }, { status: 400 });
     }
 
-    let totalSesiones = 0;
+    let totalCreated = 0;
+    let totalReplaced = 0;
     const createdSemanas: { id: number; semana_numero: number; anio: number; foco: string | null }[] = [];
 
     for (const [, weekSesiones] of [...byWeek.entries()].sort()) {
       const { week: semana_numero, year: anio } = getISOWeekYear(weekSesiones[0].fecha);
 
-      // Reuse existing semana for this week if it exists
+      // Reuse existing semana or create new
       const existing = await db
         .select()
         .from(semanas)
@@ -76,7 +77,24 @@ export async function POST(req: NextRequest) {
         semana = created;
       }
 
-      // Insert sesiones for this week
+      // Upsert: delete existing sesiones on the same dates before inserting
+      const batchDates = [...new Set(weekSesiones.map((s) => s.fecha))];
+      const existingSesiones = await db
+        .select({ id: sesiones.id })
+        .from(sesiones)
+        .where(and(
+          eq(sesiones.user_id, user.userId),
+          inArray(sesiones.fecha, batchDates),
+        ));
+
+      if (existingSesiones.length > 0) {
+        const ids = existingSesiones.map((s) => s.id);
+        await db.delete(ejecuciones).where(inArray(ejecuciones.sesion_id, ids));
+        await db.delete(sesiones).where(inArray(sesiones.id, ids));
+        totalReplaced += existingSesiones.length;
+      }
+
+      // Insert sesiones
       const insertedSesiones = await db
         .insert(sesiones)
         .values(
@@ -86,6 +104,8 @@ export async function POST(req: NextRequest) {
             fecha: s.fecha,
             ejercicio: s.ejercicio,
             categoria: s.categoria,
+            bloque: s.bloque,
+            tipo_bloque: s.tipo_bloque,
             series: s.series,
             reps: s.reps,
             peso_kg: s.peso_kg,
@@ -98,7 +118,7 @@ export async function POST(req: NextRequest) {
         )
         .returning();
 
-      // Auto-create ejecuciones as planned copies
+      // Auto-create ejecuciones
       await db.insert(ejecuciones).values(
         insertedSesiones.map((s) => ({
           sesion_id: s.id,
@@ -107,6 +127,8 @@ export async function POST(req: NextRequest) {
           fecha: s.fecha,
           ejercicio: s.ejercicio,
           categoria: s.categoria,
+          bloque: s.bloque,
+          tipo_bloque: s.tipo_bloque,
           series: s.series,
           reps: s.reps,
           peso_kg: s.peso_kg,
@@ -119,7 +141,7 @@ export async function POST(req: NextRequest) {
         }))
       );
 
-      // Auto-detect foco for this week
+      // Auto-detect foco
       const runningCount = insertedSesiones.filter((s) => s.distancia_km && s.distancia_km > 0).length;
       const gymCount = insertedSesiones.filter((s) => (s.series && s.series > 0) || (s.peso_kg && s.peso_kg > 0)).length;
       const total = insertedSesiones.length;
@@ -138,17 +160,17 @@ export async function POST(req: NextRequest) {
       }
 
       createdSemanas.push({ ...semana, foco: autoFoco ?? semana.foco ?? null });
-      totalSesiones += insertedSesiones.length;
+      totalCreated += insertedSesiones.length;
     }
 
-    // Check records across all imported sessions
     const newRecords = await checkAndUpdateRecords(user.userId, parsedSesiones);
 
     return NextResponse.json({
-      semana: createdSemanas[createdSemanas.length - 1], // most recent week for compat
+      semana: createdSemanas[createdSemanas.length - 1],
       semanas: createdSemanas,
       semanasCount: createdSemanas.length,
-      sesionesCount: totalSesiones,
+      sesionesCount: totalCreated,
+      replacedCount: totalReplaced,
       newRecords,
     });
   } catch (error) {

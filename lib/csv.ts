@@ -12,6 +12,8 @@ export interface CsvRow {
   sensacion?: string;
   dolor?: string;
   notas?: string;
+  bloque?: string;
+  tipo_bloque?: string;
 }
 
 export interface ParsedSesion {
@@ -26,6 +28,8 @@ export interface ParsedSesion {
   sensacion: number | null;
   dolor: boolean;
   notas: string | null;
+  bloque: string | null;
+  tipo_bloque: string | null;
 }
 
 export function parseCsv(content: string): ParsedSesion[] {
@@ -55,5 +59,7 @@ export function parseCsv(content: string): ParsedSesion[] {
       return d === 'si' || d === 'true' || d === '1' || d === 'yes';
     })(),
     notas: row.notas?.trim() || null,
+    bloque: row.bloque?.trim() || null,
+    tipo_bloque: row.tipo_bloque?.trim() || null,
   }));
 }

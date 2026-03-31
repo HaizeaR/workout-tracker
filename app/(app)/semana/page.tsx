@@ -123,6 +123,8 @@ export default function SemanaPage() {
 
   // Delete state
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [confirmDeleteDay, setConfirmDeleteDay] = useState<string | null>(null);
+  const [deletingDay, setDeletingDay] = useState<string | null>(null);
 
   // Add exercise state (fecha of day being added to, or null)
   const [addingToDay, setAddingToDay] = useState<string | null>(null);
@@ -349,6 +351,22 @@ export default function SemanaPage() {
       } : prev);
     } finally {
       setDeletingId(null);
+    }
+  }
+
+  async function handleDeleteDay(fecha: string) {
+    setDeletingDay(fecha);
+    try {
+      await fetch(`/api/sesiones?fecha=${fecha}`, { method: 'DELETE' });
+      setDetail((prev) => prev ? {
+        ...prev,
+        plan: prev.plan.filter((s) => s.fecha !== fecha),
+        ejecuciones: prev.ejecuciones.filter((e) => e.fecha !== fecha),
+      } : prev);
+      setOpenDays((prev) => { const n = new Set(prev); n.delete(fecha); return n; });
+      setConfirmDeleteDay(null);
+    } finally {
+      setDeletingDay(null);
     }
   }
 
@@ -799,6 +817,17 @@ export default function SemanaPage() {
                       })()}
                     </div>
                     <div className="flex items-center gap-2">
+                      {/* Delete day button */}
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setConfirmDeleteDay(fecha); }}
+                        className="w-6 h-6 rounded flex items-center justify-center"
+                        style={{ background: 'transparent' }}
+                        title="Borrar día entero"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="#e05050" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      </button>
                       {/* Move day button */}
                       <button
                         onClick={(e) => { e.stopPropagation(); setMovingDay(movingDay === fecha ? null : fecha); setMoveTarget(fecha); }}
@@ -870,7 +899,29 @@ export default function SemanaPage() {
                         );
                       })}
                     </div>
-                    {dayExercises.map((sesion) => {
+                    {(() => {
+                      // Group by bloque
+                      const bloqueGroups: Array<{ bloque: string | null; tipo_bloque: string | null; exercises: typeof dayExercises }> = [];
+                      const seenBloques = new Map<string, number>();
+                      for (const sesion of dayExercises) {
+                        const key = sesion.bloque ?? '__none__';
+                        if (!seenBloques.has(key)) {
+                          seenBloques.set(key, bloqueGroups.length);
+                          bloqueGroups.push({ bloque: sesion.bloque ?? null, tipo_bloque: sesion.tipo_bloque ?? null, exercises: [] });
+                        }
+                        bloqueGroups[seenBloques.get(key)!].exercises.push(sesion);
+                      }
+                      return bloqueGroups.map((group, gi) => (
+                        <div key={gi}>
+                          {group.bloque && (
+                            <div className="px-4 py-2 flex items-center gap-2" style={{ background: '#0f1117', borderBottom: '1px solid #2a2d36' }}>
+                              <span className="text-xs font-bold uppercase tracking-wider" style={{ color: '#c4f135' }}>{group.bloque}</span>
+                              {group.tipo_bloque && (
+                                <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: '#2a2d36', color: '#888' }}>{group.tipo_bloque}</span>
+                              )}
+                            </div>
+                          )}
+                          {group.exercises.map((sesion) => {
                       const ejec = getEjecucion(sesion.id);
                       if (!ejec) return null;
 
@@ -1202,7 +1253,10 @@ export default function SemanaPage() {
                           )}
                         </div>
                       );
-                    })}
+                          })}
+                        </div>
+                      ));
+                    })()}
 
                     {/* Add exercise section */}
                     <div className="px-4 py-3" style={{ background: '#0f1117' }}>
@@ -1284,6 +1338,46 @@ export default function SemanaPage() {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Confirm delete day modal */}
+      {confirmDeleteDay && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          style={{ background: 'rgba(0,0,0,0.7)' }}
+          onClick={() => setConfirmDeleteDay(null)}
+        >
+          <div
+            className="rounded-2xl p-6 max-w-sm w-full"
+            style={{ background: '#1a1d24', border: '1px solid #2a2d36' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p className="font-semibold mb-1" style={{ color: '#f0f0f0' }}>Borrar día entero</p>
+            <p className="text-sm mb-5" style={{ color: '#888' }}>
+              Se eliminarán todos los ejercicios del{' '}
+              <span style={{ color: '#f0f0f0' }}>
+                {new Date(confirmDeleteDay + 'T12:00:00').toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
+              </span>. Esta acción no se puede deshacer.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setConfirmDeleteDay(null)}
+                className="flex-1 py-2.5 rounded-xl text-sm"
+                style={{ background: '#2a2d36', color: '#888' }}
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => handleDeleteDay(confirmDeleteDay)}
+                disabled={deletingDay === confirmDeleteDay}
+                className="flex-1 py-2.5 rounded-xl text-sm font-semibold"
+                style={{ background: '#e05050', color: '#fff', opacity: deletingDay === confirmDeleteDay ? 0.7 : 1 }}
+              >
+                {deletingDay === confirmDeleteDay ? 'Borrando...' : 'Borrar día'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
