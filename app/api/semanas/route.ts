@@ -1,9 +1,9 @@
 export const dynamic = 'force-dynamic';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getAuthUser } from '@/lib/auth';
 import { db } from '@/db';
 import { semanas, sesiones, ejecuciones } from '@/db/schema';
-import { eq, desc } from 'drizzle-orm';
+import { eq, desc, and } from 'drizzle-orm';
 
 export async function GET() {
   const user = await getAuthUser();
@@ -43,6 +43,40 @@ export async function GET() {
     return NextResponse.json({ semanas: semanasWithCounts });
   } catch (error) {
     console.error('Get semanas error:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+
+export async function POST(req: NextRequest) {
+  const user = await getAuthUser();
+  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  try {
+    const { anio, semana_numero } = await req.json();
+    if (!anio || !semana_numero) {
+      return NextResponse.json({ error: 'anio y semana_numero son obligatorios' }, { status: 400 });
+    }
+
+    // Check if week already exists for this user
+    const existing = await db.query.semanas.findFirst({
+      where: and(
+        eq(semanas.user_id, user.userId),
+        eq(semanas.anio, anio),
+        eq(semanas.semana_numero, semana_numero)
+      ),
+    });
+
+    if (existing) return NextResponse.json({ semana: existing });
+
+    const [semana] = await db.insert(semanas).values({
+      user_id: user.userId,
+      anio,
+      semana_numero,
+    }).returning();
+
+    return NextResponse.json({ semana }, { status: 201 });
+  } catch (error) {
+    console.error('Create semana error:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }

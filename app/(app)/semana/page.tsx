@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Sesion, Ejecucion } from '@/db/schema';
+import CsvUpload from '@/components/CsvUpload';
 
 interface SemanaInfo {
   id: number;
@@ -50,6 +51,39 @@ function inputStyle(focused: boolean = false) {
   };
 }
 
+// ISO week helpers
+function getISOWeek(d: Date): { week: number; year: number } {
+  const date = new Date(d);
+  date.setHours(0, 0, 0, 0);
+  date.setDate(date.getDate() + 3 - ((date.getDay() + 6) % 7));
+  const week1 = new Date(date.getFullYear(), 0, 4);
+  return {
+    week: 1 + Math.round(((date.getTime() - week1.getTime()) / 86400000 - 3 + ((week1.getDay() + 6) % 7)) / 7),
+    year: date.getFullYear(),
+  };
+}
+
+function getWeekDays(refDate: Date) {
+  const dow = refDate.getDay();
+  const monday = new Date(refDate);
+  monday.setDate(refDate.getDate() - ((dow + 6) % 7));
+  return Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(monday);
+    d.setDate(monday.getDate() + i);
+    return { date: d, label: ['L', 'M', 'X', 'J', 'V', 'S', 'D'][i], key: d.toISOString().slice(0, 10) };
+  });
+}
+
+function formatWeekRange(days: { date: Date; key: string }[]) {
+  const start = days[0].date;
+  const end = days[6].date;
+  const months = ['ene', 'feb', 'mar', 'abr', 'may', 'jun', 'jul', 'ago', 'sep', 'oct', 'nov', 'dic'];
+  if (start.getMonth() === end.getMonth()) {
+    return `${start.getDate()} – ${end.getDate()} ${months[end.getMonth()]}`;
+  }
+  return `${start.getDate()} ${months[start.getMonth()]} – ${end.getDate()} ${months[end.getMonth()]}`;
+}
+
 export default function SemanaPage() {
   const router = useRouter();
   const [semanas, setSemanas] = useState<SemanaInfo[]>([]);
@@ -58,6 +92,18 @@ export default function SemanaPage() {
   const [loading, setLoading] = useState(true);
   const [loadingDetail, setLoadingDetail] = useState(false);
   const [openDays, setOpenDays] = useState<Set<string>>(new Set());
+
+  // Week calendar navigation
+  const [viewDate, setViewDate] = useState<Date>(() => new Date());
+
+  // "No data" week actions
+  const [showCsvUpload, setShowCsvUpload] = useState(false);
+  const [creatingWeek, setCreatingWeek] = useState(false);
+
+  // Top-level "add exercise" for empty weeks (needs date picker)
+  const [addingTopLevel, setAddingTopLevel] = useState(false);
+  const [topAddForm, setTopAddForm] = useState<PlanEditState & { fecha: string }>({ ...emptyPlanEdit(), fecha: '' });
+  const [savingTopAdd, setSavingTopAdd] = useState(false);
 
   // Execution edit state
   const [editState, setEditState] = useState<Record<number, Partial<Ejecucion>>>({});
@@ -77,9 +123,12 @@ export default function SemanaPage() {
   const [savingAdd, setSavingAdd] = useState(false);
 
   // Move day state
-  const [movingDay, setMovingDay] = useState<string | null>(null); // fecha being moved
+  const [movingDay, setMovingDay] = useState<string | null>(null);
   const [moveTarget, setMoveTarget] = useState<string>('');
   const [savingMove, setSavingMove] = useState(false);
+
+  // Refs for scrolling to days
+  const dayRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
   useEffect(() => {
     async function load() {
@@ -88,7 +137,6 @@ export default function SemanaPage() {
         if (!semanasRes.ok) { router.push('/login'); return; }
         const semanasData = await semanasRes.json();
         setSemanas(semanasData.semanas || []);
-        if (semanasData.semanas?.length > 0) setSelectedId(semanasData.semanas[0].id);
       } finally {
         setLoading(false);
       }
@@ -96,8 +144,20 @@ export default function SemanaPage() {
     load();
   }, [router]);
 
+  // When viewDate or semanas change, find matching semana and set selectedId
   useEffect(() => {
-    if (!selectedId) return;
+    const { week, year } = getISOWeek(viewDate);
+    const found = semanas.find((s) => s.semana_numero === week && s.anio === year);
+    setSelectedId(found ? found.id : null);
+    setShowCsvUpload(false);
+    setAddingTopLevel(false);
+  }, [viewDate, semanas]);
+
+  useEffect(() => {
+    if (!selectedId) {
+      setDetail(null);
+      return;
+    }
     setLoadingDetail(true);
     setOpenDays(new Set());
     setEditingPlan(null);
@@ -118,7 +178,71 @@ export default function SemanaPage() {
       .finally(() => setLoadingDetail(false));
   }, [selectedId]);
 
-  // ── Execution handlers ──────────────────────────────────────────────────────
+  // ── Week navigation ───────────────────────────────────────────────────────────
+  const weekDays = getWeekDays(viewDate);
+  const { week: currentWeekNum, year: currentWeekYear } = getISOWeek(viewDate);
+  const todayKey = new Date().toISOString().slice(0, 10);
+
+  // Dates with exercises (from plan)
+  const planDates = new Set((detail?.plan ?? []).map((s) => s.fecha));
+
+  // Dates where all exercises are done
+  const doneDates = new Set(
+    Object.entries(
+      (detail?.plan ?? []).reduce<Record<string, { total: number; done: number }>>((acc, s) => {
+        if (!acc[s.fecha]) acc[s.fecha] = { total: 0, done: 0 };
+        acc[s.fecha].total++;
+        const ejec = detail?.ejecuciones.find((e) => e.sesion_id === s.id);
+        if (ejec?.completado) acc[s.fecha].done++;
+        return acc;
+      }, {})
+    )
+      .filter(([, v]) => v.total > 0 && v.done === v.total)
+      .map(([k]) => k)
+  );
+
+  function navigateWeek(dir: -1 | 1) {
+    setViewDate((prev) => {
+      const d = new Date(prev);
+      d.setDate(d.getDate() + dir * 7);
+      return d;
+    });
+  }
+
+  function handleDayClick(key: string) {
+    if (planDates.has(key)) {
+      // Open that day accordion and scroll to it
+      setOpenDays((prev) => { const n = new Set(prev); n.add(key); return n; });
+      setTimeout(() => {
+        dayRefs.current[key]?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 50);
+    }
+  }
+
+  // ── Create week manually ─────────────────────────────────────────────────────
+  async function handleCreateWeek() {
+    setCreatingWeek(true);
+    try {
+      const res = await fetch('/api/semanas', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ anio: currentWeekYear, semana_numero: currentWeekNum }),
+      });
+      if (!res.ok) throw new Error('Error al crear semana');
+      const { semana } = await res.json();
+      // Reload semanas list
+      const semanasRes = await fetch('/api/semanas');
+      const semanasData = await semanasRes.json();
+      setSemanas(semanasData.semanas || []);
+      setSelectedId(semana.id);
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setCreatingWeek(false);
+    }
+  }
+
+  // ── Execution handlers ────────────────────────────────────────────────────────
   const handleUpdate = useCallback(async (ejecucionId: number, updates: Partial<Ejecucion>) => {
     const res = await fetch(`/api/ejecuciones/${ejecucionId}`, {
       method: 'PUT',
@@ -155,7 +279,7 @@ export default function SemanaPage() {
     finally { setSaving((prev) => { const n = new Set(prev); n.delete(ejecucionId); return n; }); }
   }
 
-  // ── Plan edit handlers ───────────────────────────────────────────────────────
+  // ── Plan edit handlers ────────────────────────────────────────────────────────
   function startEditPlan(sesion: Sesion) {
     setEditingPlan(sesion.id);
     setPlanForm({
@@ -194,7 +318,7 @@ export default function SemanaPage() {
     }
   }
 
-  // ── Delete handler ───────────────────────────────────────────────────────────
+  // ── Delete handler ────────────────────────────────────────────────────────────
   async function handleDelete(sesionId: number) {
     setDeletingId(sesionId);
     try {
@@ -209,7 +333,7 @@ export default function SemanaPage() {
     }
   }
 
-  // ── Add exercise handler ─────────────────────────────────────────────────────
+  // ── Add exercise to existing day ──────────────────────────────────────────────
   async function handleAddExercise(fecha: string) {
     if (!addForm.ejercicio.trim() || !selectedId) return;
     setSavingAdd(true);
@@ -236,6 +360,37 @@ export default function SemanaPage() {
       setAddForm(emptyPlanEdit());
     } finally {
       setSavingAdd(false);
+    }
+  }
+
+  // ── Top-level add (for empty semana, needs date) ──────────────────────────────
+  async function handleTopLevelAdd() {
+    if (!topAddForm.ejercicio.trim() || !topAddForm.fecha || !selectedId) return;
+    setSavingTopAdd(true);
+    try {
+      const res = await fetch('/api/sesiones', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          semana_id: selectedId,
+          fecha: topAddForm.fecha,
+          ejercicio: topAddForm.ejercicio,
+          categoria: topAddForm.categoria || null,
+          series: topAddForm.series ? parseInt(topAddForm.series) : null,
+          reps: topAddForm.reps ? parseInt(topAddForm.reps) : null,
+          peso_kg: topAddForm.peso_kg ? parseFloat(topAddForm.peso_kg) : null,
+          distancia_km: topAddForm.distancia_km ? parseFloat(topAddForm.distancia_km) : null,
+          duracion_min: topAddForm.duracion_min ? parseFloat(topAddForm.duracion_min) : null,
+        }),
+      });
+      if (!res.ok) throw new Error('Error al añadir');
+      const { sesion, ejecucion } = await res.json();
+      setDetail((prev) => prev ? { ...prev, plan: [...prev.plan, sesion], ejecuciones: [...prev.ejecuciones, ejecucion] } : prev);
+      setOpenDays((prev) => new Set(prev).add(topAddForm.fecha));
+      setAddingTopLevel(false);
+      setTopAddForm({ ...emptyPlanEdit(), fecha: '' });
+    } finally {
+      setSavingTopAdd(false);
     }
   }
 
@@ -278,58 +433,142 @@ export default function SemanaPage() {
     return (
       <div className="p-4 space-y-4" style={{ background: '#0f1117', minHeight: '100vh' }}>
         <div className="h-8 rounded-lg animate-pulse" style={{ background: '#1a1d24', width: '180px' }} />
-        <div className="h-12 rounded-xl animate-pulse" style={{ background: '#1a1d24' }} />
+        <div className="h-20 rounded-xl animate-pulse" style={{ background: '#1a1d24' }} />
         {[...Array(3)].map((_, i) => <div key={i} className="h-16 rounded-xl animate-pulse" style={{ background: '#1a1d24' }} />)}
       </div>
     );
   }
 
-  if (semanas.length === 0) {
-    return (
-      <div className="p-4 max-w-2xl mx-auto" style={{ background: '#0f1117', minHeight: '100vh' }}>
-        <h1 className="text-xl font-bold mb-6 pt-2" style={{ color: '#f0f0f0' }}>Semana</h1>
-        <div className="text-center py-12" style={{ color: '#555' }}>
-          <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ background: '#1a1d24' }}>
-            <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="#555" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-          </div>
-          <p className="font-medium" style={{ color: '#ccc' }}>Sin semanas importadas</p>
-          <p className="text-sm mt-1">Ve al Dashboard e importa un CSV</p>
-        </div>
-      </div>
-    );
-  }
-
   const currentSemana = semanas.find((s) => s.id === selectedId);
+
   const byDate = (detail?.plan ?? []).reduce<Record<string, Sesion[]>>((acc, s) => {
     if (!acc[s.fecha]) acc[s.fecha] = [];
     acc[s.fecha].push(s);
     return acc;
   }, {});
   const sortedDates = Object.keys(byDate).sort();
+  const weekRangeLabel = formatWeekRange(weekDays);
+  const isEmptySemana = selectedId !== null && detail !== null && sortedDates.length === 0;
+  const noDataWeek = selectedId === null;
 
   return (
     <div className="p-4" style={{ background: '#0f1117', minHeight: '100vh' }}>
       <h1 className="text-xl font-bold mb-4 pt-2" style={{ color: '#f0f0f0' }}>Semana</h1>
 
-      {/* Semana selector */}
-      <div className="mb-4">
-        <select
-          value={selectedId ?? ''}
-          onChange={(e) => setSelectedId(parseInt(e.target.value))}
-          className="w-full px-4 py-3 rounded-xl text-sm focus:outline-none"
-          style={{ background: '#1a1d24', border: '1px solid #2a2d36', color: '#f0f0f0' }}
-        >
-          {semanas.map((s) => (
-            <option key={s.id} value={s.id} style={{ background: '#1a1d24' }}>
-              Semana {s.semana_numero} — {s.anio}{s.foco ? ` · ${s.foco}` : ''} ({s.completadas}/{s.totalSesiones})
-            </option>
-          ))}
-        </select>
+      {/* ── Week calendar strip ─────────────────────────────────────────────── */}
+      <div className="rounded-xl p-3 mb-4" style={{ background: '#1a1d24', border: '1px solid #2a2d36' }}>
+        {/* Navigation row */}
+        <div className="flex items-center justify-between mb-3">
+          <button
+            onClick={() => navigateWeek(-1)}
+            className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
+            style={{ background: '#2a2d36' }}
+            aria-label="Semana anterior"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="#888" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+          </button>
+          <div className="text-center">
+            <div className="text-xs font-semibold" style={{ color: '#c4f135' }}>
+              Semana {currentWeekNum} · {currentWeekYear}
+            </div>
+            <div className="text-xs mt-0.5" style={{ color: '#888' }}>{weekRangeLabel}</div>
+          </div>
+          <button
+            onClick={() => navigateWeek(1)}
+            className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
+            style={{ background: '#2a2d36' }}
+            aria-label="Semana siguiente"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="#888" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Day buttons */}
+        <div className="grid grid-cols-7 gap-1">
+          {weekDays.map(({ date, label, key }) => {
+            const isToday = key === todayKey;
+            const hasPlan = planDates.has(key);
+            const isDone = doneDates.has(key);
+            const dayNum = date.getDate();
+
+            let bg = 'transparent';
+            let textColor = '#555';
+            if (isToday) { bg = '#c4f135'; textColor = '#0f1117'; }
+            else if (isDone) { bg = '#1e2d0e'; textColor = '#8ab030'; }
+            else if (hasPlan) { textColor = '#f0f0f0'; }
+
+            return (
+              <button
+                key={key}
+                onClick={() => handleDayClick(key)}
+                className="flex flex-col items-center py-2 rounded-lg transition-colors"
+                style={{ background: bg, cursor: hasPlan ? 'pointer' : 'default' }}
+              >
+                <span className="text-xs font-medium mb-1" style={{ color: isToday ? '#0f1117' : '#888' }}>{label}</span>
+                <span className="text-sm font-bold" style={{ color: textColor }}>{dayNum}</span>
+                {/* Dot indicator */}
+                <div className="h-1.5 mt-1 flex items-center justify-center">
+                  {hasPlan && !isDone && (
+                    <span className="w-1.5 h-1.5 rounded-full" style={{ background: isToday ? '#0f1117' : '#c4f135' }} />
+                  )}
+                </div>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      {/* Progress bar */}
+      {/* ── No data week ──────────────────────────────────────────────────────── */}
+      {noDataWeek && (
+        <div className="rounded-xl p-5 mb-4" style={{ background: '#1a1d24', border: '1px solid #2a2d36' }}>
+          <p className="text-center text-sm mb-4" style={{ color: '#888' }}>No hay entrenos esta semana</p>
+          {showCsvUpload ? (
+            <div>
+              <CsvUpload
+                onSuccess={(result) => {
+                  // Reload semanas
+                  fetch('/api/semanas').then(r => r.json()).then(d => {
+                    setSemanas(d.semanas || []);
+                    setSelectedId(result.semana.id);
+                    setShowCsvUpload(false);
+                  });
+                }}
+              />
+              <button
+                onClick={() => setShowCsvUpload(false)}
+                className="mt-3 w-full py-2 rounded-lg text-sm"
+                style={{ background: '#2a2d36', color: '#888' }}
+              >
+                Cancelar
+              </button>
+            </div>
+          ) : (
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowCsvUpload(true)}
+                className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-colors"
+                style={{ background: '#2a2d36', color: '#f0f0f0', border: '1px solid #3a3d46' }}
+              >
+                Subir CSV
+              </button>
+              <button
+                onClick={handleCreateWeek}
+                disabled={creatingWeek}
+                className="flex-1 py-2.5 rounded-xl text-sm font-semibold"
+                style={{ background: '#c4f135', color: '#0f1117', opacity: creatingWeek ? 0.7 : 1 }}
+              >
+                {creatingWeek ? 'Creando...' : 'Programar manualmente'}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Progress bar ──────────────────────────────────────────────────────── */}
       {currentSemana && (
         <div className="rounded-xl p-3 mb-4 flex items-center gap-3" style={{ background: '#1a1d24', border: '1px solid #2a2d36' }}>
           {currentSemana.foco && (
@@ -355,7 +594,97 @@ export default function SemanaPage() {
         </div>
       )}
 
-      {/* Accordion */}
+      {/* ── Empty semana (created but no exercises yet) ────────────────────── */}
+      {isEmptySemana && (
+        <div className="rounded-xl p-5 mb-4" style={{ background: '#1a1d24', border: '1px dashed #2a2d36' }}>
+          <p className="text-center text-sm mb-4" style={{ color: '#888' }}>Semana vacía — añade tu primer ejercicio</p>
+
+          {addingTopLevel ? (
+            <div className="p-3 rounded-xl" style={{ background: '#111', border: '1px solid #2a2d36' }}>
+              <p className="text-xs font-semibold uppercase tracking-wide mb-3" style={{ color: '#c4f135' }}>Nuevo ejercicio</p>
+              <div className="space-y-2">
+                <div>
+                  <label className="block text-xs mb-1" style={{ color: '#555' }}>Fecha *</label>
+                  <input
+                    type="date"
+                    value={topAddForm.fecha}
+                    onChange={(e) => setTopAddForm((p) => ({ ...p, fecha: e.target.value }))}
+                    className="w-full px-3 py-2 rounded-lg text-sm focus:outline-none"
+                    style={{ ...inputStyle(), colorScheme: 'dark' }}
+                  />
+                </div>
+                <input
+                  type="text"
+                  value={topAddForm.ejercicio}
+                  onChange={(e) => setTopAddForm((p) => ({ ...p, ejercicio: e.target.value }))}
+                  placeholder="Ejercicio *"
+                  className="w-full px-3 py-2 rounded-lg text-sm focus:outline-none"
+                  style={inputStyle()}
+                  autoFocus
+                />
+                <input
+                  type="text"
+                  value={topAddForm.categoria}
+                  onChange={(e) => setTopAddForm((p) => ({ ...p, categoria: e.target.value }))}
+                  placeholder="Categoría"
+                  className="w-full px-3 py-2 rounded-lg text-sm focus:outline-none"
+                  style={inputStyle()}
+                />
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { key: 'series', label: 'Series' },
+                    { key: 'reps', label: 'Reps' },
+                    { key: 'peso_kg', label: 'Peso kg' },
+                    { key: 'distancia_km', label: 'Dist km' },
+                    { key: 'duracion_min', label: 'Dur min' },
+                  ].map(({ key, label }) => (
+                    <div key={key}>
+                      <label className="block text-xs mb-1" style={{ color: '#555' }}>{label}</label>
+                      <input
+                        type="number" min="0" step="0.1"
+                        value={topAddForm[key as keyof PlanEditState]}
+                        onChange={(e) => setTopAddForm((p) => ({ ...p, [key]: e.target.value }))}
+                        className="w-full px-2 py-1.5 rounded-lg text-center text-sm focus:outline-none"
+                        style={inputStyle()}
+                      />
+                    </div>
+                  ))}
+                </div>
+                <div className="flex gap-2 pt-1">
+                  <button
+                    onClick={handleTopLevelAdd}
+                    disabled={savingTopAdd || !topAddForm.ejercicio.trim() || !topAddForm.fecha}
+                    className="flex-1 py-2 rounded-lg text-sm font-semibold"
+                    style={{ background: '#c4f135', color: '#0f1117', opacity: savingTopAdd ? 0.7 : 1 }}
+                  >
+                    {savingTopAdd ? 'Añadiendo...' : 'Añadir'}
+                  </button>
+                  <button
+                    onClick={() => { setAddingTopLevel(false); setTopAddForm({ ...emptyPlanEdit(), fecha: '' }); }}
+                    className="px-4 py-2 rounded-lg text-sm"
+                    style={{ background: '#2a2d36', color: '#888' }}
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={() => setAddingTopLevel(true)}
+              className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold"
+              style={{ background: '#c4f135', color: '#0f1117' }}
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+              </svg>
+              Añadir ejercicio
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* ── Accordion ─────────────────────────────────────────────────────────── */}
       {loadingDetail ? (
         <div className="space-y-3">
           {[...Array(4)].map((_, i) => <div key={i} className="h-14 rounded-xl animate-pulse" style={{ background: '#1a1d24' }} />)}
@@ -367,13 +696,18 @@ export default function SemanaPage() {
             const isOpen = openDays.has(fecha);
             const allEjecs = sessions.map((s) => getEjecucion(s.id)).filter(Boolean) as Ejecucion[];
             const doneCount = allEjecs.filter((e) => e.completado).length;
-            const isToday = fecha === new Date().toISOString().slice(0, 10);
+            const isToday = fecha === todayKey;
             const allDone = doneCount === sessions.length && sessions.length > 0;
             const dateLabel = new Date(fecha + 'T12:00:00').toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' });
             const isAddingHere = addingToDay === fecha;
 
             return (
-              <div key={fecha} className="rounded-xl overflow-hidden" style={{ border: `1px solid ${isToday ? '#c4f135' : allDone ? '#3a5a1a' : '#2a2d36'}` }}>
+              <div
+                key={fecha}
+                ref={(el) => { dayRefs.current[fecha] = el; }}
+                className="rounded-xl overflow-hidden"
+                style={{ border: `1px solid ${isToday ? '#c4f135' : allDone ? '#3a5a1a' : '#2a2d36'}` }}
+              >
                 {/* Day header */}
                 <div style={{ background: allDone ? '#1e2d0e' : '#1a1d24' }}>
                   <button
@@ -448,7 +782,6 @@ export default function SemanaPage() {
                       const isEditingThis = editingPlan === sesion.id;
                       const isDeleting = deletingId === sesion.id;
 
-                      // Detect running: has distance in plan, or cardio-related category
                       const CARDIO_CATS = ['cardio', 'running', 'carrera', 'correr', 'trail', 'ciclismo', 'bici', 'natación', 'swim'];
                       const isRunning = !!(sesion.distancia_km && sesion.distancia_km > 0)
                         || CARDIO_CATS.some((c) => sesion.categoria?.toLowerCase().includes(c) || sesion.ejercicio.toLowerCase().includes(c));
@@ -463,7 +796,6 @@ export default function SemanaPage() {
                             sesion.peso_kg ? `@${sesion.peso_kg}kg` : null,
                           ].filter(Boolean).join(' ');
 
-                      // Running pace from execution values
                       const execDist = getFieldValue(ejec, 'distancia_km') as number | null;
                       const execDur = getFieldValue(ejec, 'duracion_min') as number | null;
                       const pace = execDist && execDur && execDist > 0 ? execDur / execDist : null;
@@ -605,7 +937,6 @@ export default function SemanaPage() {
                           {/* Execution inputs */}
                           {isRunning ? (
                             <div className="mb-3">
-                              {/* Running layout: big dist + dur + pace */}
                               <div className="grid grid-cols-2 gap-2 mb-2">
                                 {[
                                   { field: 'distancia_km' as keyof Ejecucion, label: 'Distancia', unit: 'km', step: '0.1' },
@@ -624,7 +955,6 @@ export default function SemanaPage() {
                                   </div>
                                 ))}
                               </div>
-                              {/* Pace display */}
                               {pace && (
                                 <div className="rounded-xl px-4 py-2 flex items-center justify-between" style={{ background: '#1e2a10', border: '1px solid #3a4a1a' }}>
                                   <span className="text-xs" style={{ color: '#8ab030' }}>Ritmo</span>
@@ -795,10 +1125,6 @@ export default function SemanaPage() {
               </div>
             );
           })}
-
-          {sortedDates.length === 0 && (
-            <div className="text-center py-10" style={{ color: '#555' }}>No hay sesiones en esta semana</div>
-          )}
         </div>
       )}
     </div>

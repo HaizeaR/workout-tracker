@@ -6,6 +6,7 @@ import { semanas, sesiones, ejecuciones } from '@/db/schema';
 import { parseCsv } from '@/lib/csv';
 import { checkAndUpdateRecords } from '@/lib/records';
 import { getISOWeek, getYear } from 'date-fns';
+import { eq } from 'drizzle-orm';
 
 export async function POST(req: NextRequest) {
   const user = await getAuthUser();
@@ -90,8 +91,26 @@ export async function POST(req: NextRequest) {
     // Check and update records
     const newRecords = await checkAndUpdateRecords(user.userId, parsedSesiones);
 
+    // Auto-detect foco
+    const runningCount = insertedSesiones.filter(s => s.distancia_km && s.distancia_km > 0).length;
+    const gymCount = insertedSesiones.filter(s => (s.series && s.series > 0) || (s.peso_kg && s.peso_kg > 0)).length;
+    const total = insertedSesiones.length;
+    let autoFoco: string | null = null;
+    if (total > 0) {
+      const runRatio = runningCount / total;
+      const gymRatio = gymCount / total;
+      if (runRatio > 0.7) autoFoco = 'Running';
+      else if (gymRatio > 0.7) autoFoco = 'Fuerza';
+      else if (runRatio > 0.2 && gymRatio > 0.2) autoFoco = 'Híbrido';
+      else if (gymRatio > 0.5) autoFoco = 'Fuerza';
+      else autoFoco = 'Running';
+    }
+    if (autoFoco) {
+      await db.update(semanas).set({ foco: autoFoco }).where(eq(semanas.id, newSemana.id));
+    }
+
     return NextResponse.json({
-      semana: newSemana,
+      semana: { ...newSemana, foco: autoFoco },
       sesionesCount: insertedSesiones.length,
       newRecords,
     });
