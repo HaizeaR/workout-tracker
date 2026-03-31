@@ -459,20 +459,21 @@ export default function SemanaPage() {
     const thisEl = dayExercises[idx];
     const swapEl = dayExercises[swapIdx];
 
-    const thisOrden = thisEl.orden ?? idx;
-    const swapOrden = swapEl.orden ?? swapIdx;
+    // Use target index as new orden so ties (all-zero defaults) are resolved
+    const thisNewOrden = swapIdx;
+    const swapNewOrden = idx;
 
     setSavingOrden((prev) => { const n = new Set(prev); n.add(thisEl.id); n.add(swapEl.id); return n; });
     try {
       await Promise.all([
-        fetch(`/api/sesiones/${thisEl.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ orden: swapOrden }) }),
-        fetch(`/api/sesiones/${swapEl.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ orden: thisOrden }) }),
+        fetch(`/api/sesiones/${thisEl.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ orden: thisNewOrden }) }),
+        fetch(`/api/sesiones/${swapEl.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ orden: swapNewOrden }) }),
       ]);
       setDetail((prev) => prev ? {
         ...prev,
         plan: prev.plan.map((s) => {
-          if (s.id === thisEl.id) return { ...s, orden: swapOrden };
-          if (s.id === swapEl.id) return { ...s, orden: thisOrden };
+          if (s.id === thisEl.id) return { ...s, orden: thisNewOrden };
+          if (s.id === swapEl.id) return { ...s, orden: swapNewOrden };
           return s;
         }),
       } : prev);
