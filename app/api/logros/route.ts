@@ -1,13 +1,17 @@
 export const dynamic = 'force-dynamic';
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { getAuthUser } from '@/lib/auth';
 import { db } from '@/db';
 import { semanas, ejecuciones, records } from '@/db/schema';
 import { eq } from 'drizzle-orm';
 
-export async function GET() {
-  const user = await getAuthUser();
-  if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+export async function GET(req: NextRequest) {
+  const authUser = await getAuthUser();
+  if (!authUser) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+
+  // Allow viewing any user's logros (authenticated)
+  const userIdParam = req.nextUrl.searchParams.get('userId');
+  const targetUserId = userIdParam ? parseInt(userIdParam, 10) : authUser.userId;
 
   try {
     const today = new Date();
@@ -26,17 +30,17 @@ export async function GET() {
 
     const { week: currentWeek, year: currentYear } = getISOWeek(todayStr);
 
-    const allExecs = await db.select().from(ejecuciones).where(eq(ejecuciones.user_id, user.userId));
+    const allExecs = await db.select().from(ejecuciones).where(eq(ejecuciones.user_id, targetUserId));
     const completedExecs = allExecs.filter((e) => e.completado);
 
     const totalCompletadas = completedExecs.length;
     const totalDistanciaKm = completedExecs.reduce((sum, e) => sum + (e.distancia_km ?? 0), 0);
     const mejorCarreraKm = completedExecs.reduce((max, e) => Math.max(max, e.distancia_km ?? 0), 0);
 
-    const allRecords = await db.select().from(records).where(eq(records.user_id, user.userId));
+    const allRecords = await db.select().from(records).where(eq(records.user_id, targetUserId));
     const totalPRs = allRecords.length;
 
-    const allSemanas = await db.select().from(semanas).where(eq(semanas.user_id, user.userId));
+    const allSemanas = await db.select().from(semanas).where(eq(semanas.user_id, targetUserId));
     const semanasConCompletado = new Set(completedExecs.map((e) => e.semana_id));
     const semanasActivas = semanasConCompletado.size;
 

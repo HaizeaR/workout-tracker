@@ -111,14 +111,40 @@ function MedalBadge({ medal, unlocked }: { medal: MedalDef; unlocked: boolean; s
   );
 }
 
+interface AppUser {
+  id: number;
+  username: string;
+}
+
 export default function LogrosPage() {
   const router = useRouter();
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
   const [animate, setAnimate] = useState(false);
+  const [users, setUsers] = useState<AppUser[]>([]);
+  const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
+  const [myUserId, setMyUserId] = useState<number | null>(null);
 
+  // Load user list + my ID on mount
   useEffect(() => {
-    fetch('/api/logros')
+    Promise.all([
+      fetch('/api/users').then((r) => r.ok ? r.json() : null),
+      fetch('/api/auth/me').then((r) => r.ok ? r.json() : null),
+    ]).then(([usersData, meData]) => {
+      if (!meData) { router.push('/login'); return; }
+      const me = meData.user?.userId ?? meData.user?.id;
+      setMyUserId(me);
+      setSelectedUserId(me);
+      if (usersData?.users) setUsers(usersData.users);
+    });
+  }, [router]);
+
+  // Load logros whenever selectedUserId changes
+  useEffect(() => {
+    if (selectedUserId === null) return;
+    setLoading(true);
+    setAnimate(false);
+    fetch(`/api/logros?userId=${selectedUserId}`)
       .then((r) => {
         if (!r.ok) { router.push('/login'); return null; }
         return r.json();
@@ -130,7 +156,7 @@ export default function LogrosPage() {
       })
       .catch(console.error)
       .finally(() => setLoading(false));
-  }, [router]);
+  }, [selectedUserId, router]);
 
   if (loading) {
     return (
@@ -361,9 +387,60 @@ export default function LogrosPage() {
     return acc;
   }, {});
 
+  const selectedUser = users.find((u) => u.id === selectedUserId);
+  const isViewingOther = selectedUserId !== myUserId;
+
   return (
     <div className="p-4 max-w-2xl mx-auto space-y-6 pb-24">
       <h1 className="text-xl font-bold pt-2" style={{ color: '#f0f0f0' }}>Logros</h1>
+
+      {/* User switcher */}
+      {users.length > 1 && (
+        <div className="flex gap-2">
+          {users.map((u) => {
+            const isActive = selectedUserId === u.id;
+            const isMe = u.id === myUserId;
+            return (
+              <button
+                key={u.id}
+                onClick={() => { setSelectedUserId(u.id); }}
+                className="flex items-center gap-2 px-3 py-2 rounded-xl transition-all flex-1 justify-center"
+                style={{
+                  background: isActive ? '#1e2d0e' : '#1a1d24',
+                  border: `1px solid ${isActive ? '#c4f135' : '#2a2d36'}`,
+                }}
+              >
+                <span
+                  className="w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0"
+                  style={{ background: isActive ? '#c4f135' : '#2a2d36', color: isActive ? '#0f1117' : '#888' }}
+                >
+                  {u.username[0].toUpperCase()}
+                </span>
+                <div className="text-left">
+                  <p className="text-sm font-semibold" style={{ color: isActive ? '#f0f0f0' : '#888' }}>{u.username}</p>
+                  {isMe && <p className="text-xs" style={{ color: '#555' }}>tú</p>}
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Viewing other user banner */}
+      {isViewingOther && selectedUser && (
+        <div
+          className="rounded-xl px-4 py-2.5 flex items-center gap-2"
+          style={{ background: '#1a2540', border: '1px solid #2a4a80' }}
+        >
+          <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="#60a5fa" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+          </svg>
+          <p className="text-sm" style={{ color: '#60a5fa' }}>
+            Viendo los logros de <strong>{selectedUser.username}</strong>
+          </p>
+        </div>
+      )}
 
       {/* Rings */}
       <div
