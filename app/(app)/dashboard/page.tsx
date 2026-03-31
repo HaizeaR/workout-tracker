@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import CsvUpload from '@/components/CsvUpload';
-import { TIPO_COLORS } from '@/lib/tipo-colors';
+import { TIPO_COLORS, getDayColor } from '@/lib/tipo-colors';
 
 interface DashboardData {
   weeklyStats: {
@@ -158,6 +158,7 @@ export default function DashboardPage() {
   const completedDates = new Set<string>();
   const pendingDates = new Set<string>();
   const dayTipos: Record<string, string> = {};
+  const dayCategorias: Record<string, string[]> = {};
 
   if (semanaDetail) {
     const execBySession = new Map(semanaDetail.ejecuciones.map((e) => [e.sesion_id, e]));
@@ -166,6 +167,10 @@ export default function DashboardPage() {
       if (ejec?.completado) completedDates.add(s.fecha);
       else pendingDates.add(s.fecha);
       if (s.tipo) dayTipos[s.fecha] = s.tipo;
+      if (s.categoria) {
+        if (!dayCategorias[s.fecha]) dayCategorias[s.fecha] = [];
+        dayCategorias[s.fecha].push(s.categoria);
+      }
     }
   }
 
@@ -223,7 +228,7 @@ export default function DashboardPage() {
           const hasPlan = completedDates.has(dayKey) || pendingDates.has(dayKey);
           const isPast = dayKey < todayKey;
           const tipo = dayTipos[dayKey];
-          const tipoStyle = tipo ? TIPO_COLORS[tipo] : null;
+          const tipoStyle = getDayColor(tipo, dayCategorias[dayKey] ?? []);
 
           let bg = 'transparent';
           let textColor = '#444';
@@ -240,7 +245,7 @@ export default function DashboardPage() {
               <span className="text-xs font-medium" style={{ color: isToday ? '#0f1117' : '#555' }}>{dayLabel}</span>
               <span className="text-sm font-bold mt-0.5" style={{ color: textColor }}>{dayNum}</span>
               <div className="h-1.5 mt-1">
-                {hasPlan && !isDone && <span className="block w-1 h-1 rounded-full mx-auto" style={{ background: isToday ? '#0f1117' : '#c4f135' }} />}
+                {hasPlan && !isDone && <span className="block w-1 h-1 rounded-full mx-auto" style={{ background: isToday ? '#0f1117' : tipoStyle?.color ?? '#c4f135' }} />}
               </div>
             </div>
           );

@@ -43,7 +43,8 @@ const emptyPlanEdit = (): PlanEditState => ({
   ejercicio: '', categoria: '', series: '', reps: '', peso_kg: '', distancia_km: '', ritmo: '',
 });
 
-import { TIPO_COLORS, TIPOS } from '@/lib/tipo-colors';
+import { TIPO_COLORS, TIPOS, getDayColor } from '@/lib/tipo-colors';
+import CategoriaSelect from '@/components/CategoriaSelect';
 
 function inputStyle(focused: boolean = false) {
   return {
@@ -703,13 +704,9 @@ export default function SemanaPage() {
                   style={inputStyle()}
                   autoFocus
                 />
-                <input
-                  type="text"
+                <CategoriaSelect
                   value={topAddForm.categoria}
-                  onChange={(e) => setTopAddForm((p) => ({ ...p, categoria: e.target.value }))}
-                  placeholder="Categoría"
-                  className="w-full px-3 py-2 rounded-lg text-sm focus:outline-none"
-                  style={inputStyle()}
+                  onChange={(v) => setTopAddForm((p) => ({ ...p, categoria: v }))}
                 />
                 <div className="grid grid-cols-3 gap-2">
                   {[
@@ -788,10 +785,10 @@ export default function SemanaPage() {
                 key={fecha}
                 ref={(el) => { dayRefs.current[fecha] = el; }}
                 className="rounded-xl overflow-hidden"
-                style={{ border: `1px solid ${isToday ? '#c4f135' : allDone ? '#3a5a1a' : '#2a2d36'}` }}
+                style={{ border: `1px solid ${isToday ? '#c4f135' : allDone ? (getDayColor(sessions[0]?.tipo, sessions.map(x => x.categoria))?.color ?? '#3a5a1a') + '88' : '#2a2d36'}` }}
               >
                 {/* Day header */}
-                <div style={{ background: allDone ? '#1e2d0e' : '#1a1d24' }}>
+                <div style={{ background: allDone ? (getDayColor(sessions[0]?.tipo, sessions.map(x => x.categoria))?.bg ?? '#1e2d0e') : '#1a1d24' }}>
                   <button
                     onClick={() => toggleDay(fecha)}
                     className="w-full flex items-center justify-between px-4 py-3"
@@ -800,9 +797,10 @@ export default function SemanaPage() {
                       {isToday && <span className="w-2 h-2 rounded-full" style={{ background: '#c4f135' }} />}
                       <span className="font-medium text-sm capitalize" style={{ color: allDone ? '#8ab030' : '#f0f0f0' }}>{dateLabel}</span>
                       {isToday && <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: '#c4f135', color: '#0f1117' }}>hoy</span>}
-                      {sessions[0]?.tipo && (() => {
-                        const s = TIPO_COLORS[sessions[0].tipo!];
-                        return s ? <span className="text-xs px-1.5 py-0.5 rounded font-medium" style={{ background: s.bg, color: s.color }}>{sessions[0].tipo}</span> : null;
+                      {(() => {
+                        const s = getDayColor(sessions[0]?.tipo, sessions.map((x) => x.categoria));
+                        const label = sessions[0]?.tipo ?? sessions.find((x) => x.categoria)?.categoria;
+                        return s && label ? <span className="text-xs px-1.5 py-0.5 rounded font-medium" style={{ background: s.bg, color: s.color }}>{label}</span> : null;
                       })()}
                     </div>
                     <div className="flex items-center gap-2">
@@ -1044,13 +1042,9 @@ export default function SemanaPage() {
                                   className="w-full px-3 py-2 rounded-lg text-sm focus:outline-none"
                                   style={inputStyle()}
                                 />
-                                <input
-                                  type="text"
+                                <CategoriaSelect
                                   value={planForm.categoria}
-                                  onChange={(e) => setPlanForm((p) => ({ ...p, categoria: e.target.value }))}
-                                  placeholder="Categoría"
-                                  className="w-full px-3 py-2 rounded-lg text-sm focus:outline-none"
-                                  style={inputStyle()}
+                                  onChange={(v) => setPlanForm((p) => ({ ...p, categoria: v }))}
                                 />
                                 <div className="grid grid-cols-3 gap-2">
                                   {[
@@ -1262,13 +1256,9 @@ export default function SemanaPage() {
                               style={inputStyle()}
                               autoFocus
                             />
-                            <input
-                              type="text"
+                            <CategoriaSelect
                               value={addForm.categoria}
-                              onChange={(e) => setAddForm((p) => ({ ...p, categoria: e.target.value }))}
-                              placeholder="Categoría"
-                              className="w-full px-3 py-2 rounded-lg text-sm focus:outline-none"
-                              style={inputStyle()}
+                              onChange={(v) => setAddForm((p) => ({ ...p, categoria: v }))}
                             />
                             <div className="grid grid-cols-3 gap-2">
                               {[
