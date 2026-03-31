@@ -20,7 +20,7 @@ function BarChart({
   unit,
   color,
 }: {
-  data: Record<string, number | null>[];
+  data: Record<string, number | string | null>[];
   valueKey: string;
   labelKey: string;
   unit: string;
