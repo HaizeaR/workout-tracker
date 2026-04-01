@@ -110,36 +110,36 @@ export default function CsvUpload({ onSuccess }: CsvUploadProps) {
       <div className="w-full">
         <div className="rounded-xl overflow-hidden" style={{ border: '1px solid #2a2d36' }}>
           {/* Header */}
-          <div className="px-4 py-3 flex items-center justify-between" style={{ background: '#13161d', borderBottom: '1px solid #2a2d36' }}>
+          <div className="px-4 py-3 flex items-center justify-between" style={{ background: 'var(--bg-card)', borderBottom: '1px solid #2a2d36' }}>
             <div>
-              <p className="font-semibold text-sm" style={{ color: '#f0f0f0' }}>Vista previa</p>
-              <p className="text-xs mt-0.5" style={{ color: '#666' }}>
+              <p className="font-semibold text-sm" style={{ color: 'var(--text)' }}>Vista previa</p>
+              <p className="text-xs mt-0.5" style={{ color: 'var(--text-dim)' }}>
                 {preview.length} días · {totalEjercicios} ejercicios
               </p>
             </div>
-            <button onClick={cancelPreview} className="text-xs px-3 py-1.5 rounded-lg" style={{ background: '#2a2d36', color: '#888' }}>
+            <button onClick={cancelPreview} className="text-xs px-3 py-1.5 rounded-lg" style={{ background: 'var(--border)', color: 'var(--text-dim)' }}>
               Cancelar
             </button>
           </div>
 
           {/* Days list */}
-          <div className="divide-y max-h-72 overflow-y-auto" style={{ borderColor: '#2a2d36' }}>
+          <div className="divide-y max-h-72 overflow-y-auto" style={{ borderColor: 'var(--border)' }}>
             {preview.map((day) => {
               const dateLabel = new Date(day.fecha + 'T12:00:00').toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' });
               const tipoStyle = day.tipo ? TIPO_COLORS[day.tipo] : null;
               return (
-                <div key={day.fecha} className="px-4 py-3 flex items-start gap-3" style={{ background: '#1a1d24' }}>
+                <div key={day.fecha} className="px-4 py-3 flex items-start gap-3" style={{ background: 'var(--bg-card2)' }}>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-sm font-medium capitalize" style={{ color: '#f0f0f0' }}>{dateLabel}</span>
+                      <span className="text-sm font-medium capitalize" style={{ color: 'var(--text)' }}>{dateLabel}</span>
                       {tipoStyle && (
                         <span className="text-xs px-1.5 py-0.5 rounded font-medium" style={{ background: tipoStyle.bg, color: tipoStyle.color }}>{day.tipo}</span>
                       )}
                       {day.bloques.length > 0 && day.bloques.map((b) => (
-                        <span key={b} className="text-xs px-1.5 py-0.5 rounded" style={{ background: '#0f1117', color: '#c4f135', border: '1px solid #2a3a0e' }}>{b}</span>
+                        <span key={b} className="text-xs px-1.5 py-0.5 rounded" style={{ background: 'var(--bg)', color: 'var(--accent)', border: '1px solid #2a3a0e' }}>{b}</span>
                       ))}
                     </div>
-                    <p className="text-xs truncate" style={{ color: '#555' }}>
+                    <p className="text-xs truncate" style={{ color: 'var(--text-mute)' }}>
                       {day.ejercicios.slice(0, 4).join(' · ')}{day.ejercicios.length > 4 ? ` +${day.ejercicios.length - 4}` : ''}
                     </p>
                   </div>
@@ -150,15 +150,15 @@ export default function CsvUpload({ onSuccess }: CsvUploadProps) {
           </div>
 
           {/* Confirm */}
-          <div className="px-4 py-3" style={{ background: '#13161d', borderTop: '1px solid #2a2d36' }}>
-            <p className="text-xs mb-3" style={{ color: '#666' }}>
+          <div className="px-4 py-3" style={{ background: 'var(--bg-card)', borderTop: '1px solid #2a2d36' }}>
+            <p className="text-xs mb-3" style={{ color: 'var(--text-dim)' }}>
               Los días ya existentes serán reemplazados con los datos del CSV.
             </p>
             <button
               onClick={confirmUpload}
               disabled={loading}
               className="w-full py-2.5 rounded-xl text-sm font-semibold"
-              style={{ background: loading ? '#8ab030' : '#c4f135', color: '#0f1117', opacity: loading ? 0.8 : 1 }}
+              style={{ background: loading ? 'var(--accent-dim)' : 'var(--accent)', color: 'var(--bg)', opacity: loading ? 0.8 : 1 }}
             >
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
@@ -192,20 +192,20 @@ export default function CsvUpload({ onSuccess }: CsvUploadProps) {
         onClick={() => fileRef.current?.click()}
         className="rounded-xl p-8 text-center cursor-pointer transition-all"
         style={{
-          border: `2px dashed ${dragging ? '#c4f135' : '#2a2d36'}`,
-          background: dragging ? '#1a2d0a' : '#13161d',
+          border: `2px dashed ${dragging ? 'var(--accent)' : 'var(--border)'}`,
+          background: dragging ? '#1a2d0a' : 'var(--bg-card)',
         }}
       >
         <input ref={fileRef} type="file" accept=".csv,text/csv" className="hidden" onChange={handleFileChange} />
         <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: '#1a1d24' }}>
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="#555" strokeWidth={2}>
+          <div className="w-10 h-10 rounded-full flex items-center justify-center" style={{ background: 'var(--bg-card2)' }}>
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="var(--text-mute)" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
             </svg>
           </div>
           <div>
-            <p className="text-sm font-medium" style={{ color: '#ccc' }}>Arrastra un CSV aquí</p>
-            <p className="text-xs mt-1" style={{ color: '#555' }}>o toca para seleccionar</p>
+            <p className="text-sm font-medium" style={{ color: 'var(--text-dim)' }}>Arrastra un CSV aquí</p>
+            <p className="text-xs mt-1" style={{ color: 'var(--text-mute)' }}>o toca para seleccionar</p>
           </div>
         </div>
       </div>

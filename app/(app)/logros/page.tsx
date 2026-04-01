@@ -80,30 +80,30 @@ function MedalBadge({ medal, unlocked }: { medal: MedalDef; unlocked: boolean; s
     <div
       className="rounded-2xl p-4 flex flex-col items-center gap-2 transition-all"
       style={{
-        background: unlocked ? '#1a2010' : '#1a1d24',
-        border: `1px solid ${unlocked ? '#3a5a1a' : '#2a2d36'}`,
+        background: unlocked ? '#1a2010' : 'var(--bg-card2)',
+        border: `1px solid ${unlocked ? 'var(--accent-border)' : 'var(--border)'}`,
         opacity: unlocked ? 1 : 0.5,
       }}
     >
       <div
         className="w-14 h-14 rounded-full flex items-center justify-center text-lg font-black"
         style={{
-          background: unlocked ? '#2a4a10' : '#2a2d36',
-          color: unlocked ? '#c4f135' : '#444',
-          border: `2px solid ${unlocked ? '#c4f135' : '#333'}`,
+          background: unlocked ? '#2a4a10' : 'var(--border)',
+          color: unlocked ? 'var(--accent)' : '#444',
+          border: `2px solid ${unlocked ? 'var(--accent)' : '#333'}`,
           boxShadow: unlocked ? '0 0 20px rgba(196,241,53,0.25)' : 'none',
         }}
       >
         {medal.icon}
       </div>
-      <p className="text-xs font-semibold text-center" style={{ color: unlocked ? '#f0f0f0' : '#555' }}>
+      <p className="text-xs font-semibold text-center" style={{ color: unlocked ? 'var(--text)' : 'var(--text-mute)' }}>
         {medal.title}
       </p>
-      <p className="text-xs text-center leading-tight" style={{ color: '#555' }}>
+      <p className="text-xs text-center leading-tight" style={{ color: 'var(--text-mute)' }}>
         {medal.desc}
       </p>
       {unlocked && (
-        <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: '#1e2d0e', color: '#8ab030' }}>
+        <span className="text-xs px-2 py-0.5 rounded-full font-medium" style={{ background: 'var(--accent-bg)', color: 'var(--accent-dim)' }}>
           desbloqueado
         </span>
       )}
@@ -161,11 +161,11 @@ export default function LogrosPage() {
   if (loading) {
     return (
       <div className="p-4 space-y-4">
-        <div className="h-8 rounded-lg animate-pulse" style={{ background: '#1a1d24', width: 160 }} />
-        <div className="h-64 rounded-2xl animate-pulse" style={{ background: '#1a1d24' }} />
+        <div className="h-8 rounded-lg animate-pulse" style={{ background: 'var(--bg-card2)', width: 160 }} />
+        <div className="h-64 rounded-2xl animate-pulse" style={{ background: 'var(--bg-card2)' }} />
         <div className="grid grid-cols-3 gap-3">
           {[...Array(9)].map((_, i) => (
-            <div key={i} className="h-32 rounded-2xl animate-pulse" style={{ background: '#1a1d24' }} />
+            <div key={i} className="h-32 rounded-2xl animate-pulse" style={{ background: 'var(--bg-card2)' }} />
           ))}
         </div>
       </div>
@@ -343,8 +343,8 @@ export default function LogrosPage() {
   const RING_CONFIGS = [
     {
       progress: weekProg,
-      color: '#c4f135',
-      trackColor: '#1e2d0e',
+      color: 'var(--accent)',
+      trackColor: 'var(--accent-bg)',
       radius: 85,
       strokeWidth: 16,
       label: 'Esta semana',
@@ -392,7 +392,7 @@ export default function LogrosPage() {
 
   return (
     <div className="p-4 max-w-2xl mx-auto space-y-6 pb-24">
-      <h1 className="text-xl font-bold pt-2" style={{ color: '#f0f0f0' }}>Logros</h1>
+      <h1 className="text-xl font-bold pt-2" style={{ color: 'var(--text)' }}>Logros</h1>
 
       {/* User switcher */}
       {users.length > 1 && (
@@ -406,19 +406,19 @@ export default function LogrosPage() {
                 onClick={() => { setSelectedUserId(u.id); }}
                 className="flex items-center gap-2 px-3 py-2 rounded-xl transition-all flex-1 justify-center"
                 style={{
-                  background: isActive ? '#1e2d0e' : '#1a1d24',
-                  border: `1px solid ${isActive ? '#c4f135' : '#2a2d36'}`,
+                  background: isActive ? 'var(--accent-bg)' : 'var(--bg-card2)',
+                  border: `1px solid ${isActive ? 'var(--accent)' : 'var(--border)'}`,
                 }}
               >
                 <span
                   className="w-7 h-7 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0"
-                  style={{ background: isActive ? '#c4f135' : '#2a2d36', color: isActive ? '#0f1117' : '#888' }}
+                  style={{ background: isActive ? 'var(--accent)' : 'var(--border)', color: isActive ? 'var(--bg)' : 'var(--text-dim)' }}
                 >
                   {u.username[0].toUpperCase()}
                 </span>
                 <div className="text-left">
-                  <p className="text-sm font-semibold" style={{ color: isActive ? '#f0f0f0' : '#888' }}>{u.username}</p>
-                  {isMe && <p className="text-xs" style={{ color: '#555' }}>tú</p>}
+                  <p className="text-sm font-semibold" style={{ color: isActive ? 'var(--text)' : 'var(--text-dim)' }}>{u.username}</p>
+                  {isMe && <p className="text-xs" style={{ color: 'var(--text-mute)' }}>tú</p>}
                 </div>
               </button>
             );
@@ -430,7 +430,7 @@ export default function LogrosPage() {
       {isViewingOther && selectedUser && (
         <div
           className="rounded-xl px-4 py-2.5 flex items-center gap-2"
-          style={{ background: '#1a2540', border: '1px solid #2a4a80' }}
+          style={{ background: 'var(--bg-card2)', border: '1px solid #2a4a80' }}
         >
           <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="#60a5fa" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -445,9 +445,9 @@ export default function LogrosPage() {
       {/* Rings */}
       <div
         className="rounded-2xl p-5"
-        style={{ background: '#1a1d24', border: '1px solid #2a2d36' }}
+        style={{ background: 'var(--bg-card2)', border: '1px solid #2a2d36' }}
       >
-        <p className="text-xs font-semibold uppercase tracking-widest mb-4" style={{ color: '#888' }}>
+        <p className="text-xs font-semibold uppercase tracking-widest mb-4" style={{ color: 'var(--text-dim)' }}>
           Actividad
         </p>
         <div className="flex items-center gap-6">
@@ -458,10 +458,10 @@ export default function LogrosPage() {
                 <RingChart key={i} {...ring} animate={animate} />
               ))}
               {/* Center stats */}
-              <text x="110" y="102" textAnchor="middle" fill="#f0f0f0" fontSize="22" fontWeight="bold">
+              <text x="110" y="102" textAnchor="middle" fill="var(--text)" fontSize="22" fontWeight="bold">
                 {Math.round(weekProg * 100)}%
               </text>
-              <text x="110" y="120" textAnchor="middle" fill="#888" fontSize="11">
+              <text x="110" y="120" textAnchor="middle" fill="var(--text-dim)" fontSize="11">
                 completado
               </text>
             </svg>
@@ -473,10 +473,10 @@ export default function LogrosPage() {
                 <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: ring.color }} />
                 <div className="flex-1">
                   <div className="flex justify-between items-baseline">
-                    <span className="text-xs" style={{ color: '#888' }}>{ring.label}</span>
+                    <span className="text-xs" style={{ color: 'var(--text-dim)' }}>{ring.label}</span>
                     <span className="text-sm font-bold" style={{ color: ring.color }}>
                       {ring.value}
-                      <span className="text-xs font-normal ml-1" style={{ color: '#555' }}>{ring.sublabel}</span>
+                      <span className="text-xs font-normal ml-1" style={{ color: 'var(--text-mute)' }}>{ring.sublabel}</span>
                     </span>
                   </div>
                   {/* Mini progress bar */}
@@ -507,21 +507,21 @@ export default function LogrosPage() {
           <div
             key={label}
             className="rounded-xl p-3 text-center"
-            style={{ background: '#1a1d24', border: '1px solid #2a2d36' }}
+            style={{ background: 'var(--bg-card2)', border: '1px solid #2a2d36' }}
           >
-            <p className="text-xs mb-1" style={{ color: '#555' }}>{label}</p>
-            <p className="text-2xl font-black" style={{ color: '#c4f135' }}>{value}</p>
-            <p className="text-xs" style={{ color: '#888' }}>{sub}</p>
+            <p className="text-xs mb-1" style={{ color: 'var(--text-mute)' }}>{label}</p>
+            <p className="text-2xl font-black" style={{ color: 'var(--accent)' }}>{value}</p>
+            <p className="text-xs" style={{ color: 'var(--text-dim)' }}>{sub}</p>
           </div>
         ))}
       </div>
 
       {/* Medals header */}
       <div className="flex items-center justify-between">
-        <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: '#888' }}>
+        <p className="text-xs font-semibold uppercase tracking-widest" style={{ color: 'var(--text-dim)' }}>
           Medallas
         </p>
-        <span className="text-xs px-2.5 py-1 rounded-full font-semibold" style={{ background: '#1e2d0e', color: '#c4f135' }}>
+        <span className="text-xs px-2.5 py-1 rounded-full font-semibold" style={{ background: 'var(--accent-bg)', color: 'var(--accent)' }}>
           {unlockedCount}/{MEDALS.length}
         </span>
       </div>
@@ -529,7 +529,7 @@ export default function LogrosPage() {
       {/* Medals by category */}
       {Object.entries(medalsByCategory).map(([category, medals]) => (
         <div key={category}>
-          <p className="text-xs font-medium mb-3" style={{ color: '#555' }}>
+          <p className="text-xs font-medium mb-3" style={{ color: 'var(--text-mute)' }}>
             {CATEGORY_LABELS[category] ?? category}
           </p>
           <div className="grid grid-cols-3 gap-3">

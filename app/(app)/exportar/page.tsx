@@ -72,17 +72,17 @@ export default function ExportarPage() {
 
   return (
     <div className="p-4 max-w-2xl mx-auto">
-      <h1 className="text-xl font-bold pt-2 mb-1" style={{ color: '#f0f0f0' }}>Exportar datos</h1>
-      <p className="text-sm mb-6" style={{ color: '#666' }}>Descarga tu historial de entrenamiento</p>
+      <h1 className="text-xl font-bold pt-2 mb-1" style={{ color: 'var(--text)' }}>Exportar datos</h1>
+      <p className="text-sm mb-6" style={{ color: 'var(--text-dim)' }}>Descarga tu historial de entrenamiento</p>
 
       {/* Config card */}
       <div
         className="rounded-2xl p-4 mb-4"
-        style={{ background: '#1a1d24', border: '1px solid #2a2d36' }}
+        style={{ background: 'var(--bg-card2)', border: '1px solid #2a2d36' }}
       >
         {/* Format selector */}
         <div className="mb-4">
-          <label className="block text-xs font-medium mb-2" style={{ color: '#888' }}>Formato</label>
+          <label className="block text-xs font-medium mb-2" style={{ color: 'var(--text-dim)' }}>Formato</label>
           <div className="flex gap-2">
             {(['csv', 'text'] as const).map((f) => (
               <button
@@ -90,9 +90,9 @@ export default function ExportarPage() {
                 onClick={() => { setFormat(f); setText(''); }}
                 className="px-4 py-2 rounded-xl text-sm font-medium transition-all"
                 style={{
-                  background: format === f ? '#c4f135' : '#111',
-                  color: format === f ? '#0f1117' : '#666',
-                  border: `1px solid ${format === f ? '#c4f135' : '#2a2d36'}`,
+                  background: format === f ? 'var(--accent)' : 'var(--bg)',
+                  color: format === f ? 'var(--bg)' : 'var(--text-dim)',
+                  border: `1px solid ${format === f ? 'var(--accent)' : 'var(--border)'}`,
                 }}
               >
                 {f === 'csv' ? 'CSV (Excel)' : 'Resumen texto'}
@@ -100,7 +100,7 @@ export default function ExportarPage() {
             ))}
           </div>
           {format === 'csv' && (
-            <p className="text-xs mt-2" style={{ color: '#555' }}>
+            <p className="text-xs mt-2" style={{ color: 'var(--text-mute)' }}>
               Columnas: fecha, semana, ejercicio, categoría, tipo, series, reps, peso, distancia, ritmo, duración, sensación, dolor, notas, completado
             </p>
           )}
@@ -108,7 +108,7 @@ export default function ExportarPage() {
 
         {/* Week count */}
         <div className="mb-4">
-          <label className="block text-xs font-medium mb-2" style={{ color: '#888' }}>
+          <label className="block text-xs font-medium mb-2" style={{ color: 'var(--text-dim)' }}>
             Semanas a exportar
           </label>
           <div className="flex items-center gap-3">
@@ -120,14 +120,14 @@ export default function ExportarPage() {
               onChange={(e) => { setWeeks(Math.max(1, parseInt(e.target.value) || 1)); setText(''); }}
               className="w-24 px-4 py-3 rounded-xl text-base text-center focus:outline-none"
               style={{
-                background: '#111',
+                background: 'var(--bg)',
                 border: '1px solid #2a2d36',
-                color: '#f0f0f0',
+                color: 'var(--text)',
               }}
-              onFocus={(e) => (e.target.style.borderColor = '#c4f135')}
-              onBlur={(e) => (e.target.style.borderColor = '#2a2d36')}
+              onFocus={(e) => (e.target.style.borderColor = 'var(--accent)')}
+              onBlur={(e) => (e.target.style.borderColor = 'var(--border)')}
             />
-            <span className="text-sm" style={{ color: '#666' }}>
+            <span className="text-sm" style={{ color: 'var(--text-dim)' }}>
               de {totalSemanas} disponibles
             </span>
           </div>
@@ -140,8 +140,8 @@ export default function ExportarPage() {
             disabled={loading}
             className="flex-1 py-3 px-4 font-semibold rounded-xl transition-all text-sm"
             style={{
-              background: loading ? '#8ab030' : '#c4f135',
-              color: '#0f1117',
+              background: loading ? 'var(--accent-dim)' : 'var(--accent)',
+              color: 'var(--bg)',
               opacity: loading ? 0.8 : 1,
               cursor: loading ? 'not-allowed' : 'pointer',
             }}
@@ -164,8 +164,8 @@ export default function ExportarPage() {
               onClick={handleDownload}
               className="flex-1 py-3 px-4 font-semibold rounded-xl transition-all text-sm flex items-center justify-center gap-2"
               style={{
-                background: '#1e2d0e',
-                color: '#8ab030',
+                background: 'var(--accent-bg)',
+                color: 'var(--accent-dim)',
                 border: '1px solid #3a5a1a',
               }}
             >
@@ -186,22 +186,22 @@ export default function ExportarPage() {
       {text && (
         <div
           className="rounded-2xl overflow-hidden"
-          style={{ background: '#1a1d24', border: '1px solid #2a2d36' }}
+          style={{ background: 'var(--bg-card2)', border: '1px solid #2a2d36' }}
         >
           <div
             className="px-4 py-3 flex items-center justify-between"
-            style={{ borderBottom: '1px solid #2a2d36', background: '#13161d' }}
+            style={{ borderBottom: '1px solid #2a2d36', background: 'var(--bg-card)' }}
           >
             <div className="flex items-center gap-3">
-              <h2 className="font-medium text-sm" style={{ color: '#ccc' }}>Vista previa</h2>
-              <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: '#1e2d0e', color: '#8ab030' }}>
+              <h2 className="font-medium text-sm" style={{ color: 'var(--text-dim)' }}>Vista previa</h2>
+              <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'var(--accent-bg)', color: 'var(--accent-dim)' }}>
                 {format === 'csv' ? `${lineCount} filas` : `${lineCount} líneas`}
               </span>
             </div>
             <button
               onClick={handleCopy}
               className="flex items-center gap-1.5 text-xs transition-colors"
-              style={{ color: copied ? '#c4f135' : '#555' }}
+              style={{ color: copied ? 'var(--accent)' : 'var(--text-mute)' }}
             >
               {copied ? (
                 <>
@@ -222,7 +222,7 @@ export default function ExportarPage() {
           </div>
           <pre
             className="p-4 text-xs overflow-x-auto whitespace-pre-wrap font-mono leading-relaxed"
-            style={{ color: '#ccc', maxHeight: '55vh', overflowY: 'auto' }}
+            style={{ color: 'var(--text-dim)', maxHeight: '55vh', overflowY: 'auto' }}
           >
             {text}
           </pre>
@@ -232,12 +232,12 @@ export default function ExportarPage() {
       {!text && !loading && (
         <div
           className="rounded-2xl p-8 text-center"
-          style={{ background: '#1a1d24', border: '1px solid #2a2d36' }}
+          style={{ background: 'var(--bg-card2)', border: '1px solid #2a2d36' }}
         >
           <svg className="w-10 h-10 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="#333" strokeWidth={1.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" />
           </svg>
-          <p className="text-sm mb-1" style={{ color: '#555' }}>Selecciona el formato y haz clic en Generar</p>
+          <p className="text-sm mb-1" style={{ color: 'var(--text-mute)' }}>Selecciona el formato y haz clic en Generar</p>
           <p className="text-xs" style={{ color: '#3a3d46' }}>CSV para abrir en Excel · Texto para leer o compartir</p>
         </div>
       )}

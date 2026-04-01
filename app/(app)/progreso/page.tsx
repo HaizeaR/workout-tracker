@@ -37,7 +37,7 @@ function BarChart({
         const isMax = val === maxVal;
         return (
           <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', gap: 4, height: '100%' }}>
-            <span style={{ fontSize: 9, color: isMax ? '#c4f135' : '#888', fontWeight: isMax ? 700 : 400 }}>
+            <span style={{ fontSize: 9, color: isMax ? 'var(--accent)' : 'var(--text-dim)', fontWeight: isMax ? 700 : 400 }}>
               {val}{unit}
             </span>
             <div
@@ -45,11 +45,11 @@ function BarChart({
                 width: '100%',
                 height: heightPx,
                 borderRadius: 4,
-                background: isMax ? '#c4f135' : color,
+                background: isMax ? 'var(--accent)' : color,
                 transition: 'height 0.3s',
               }}
             />
-            <span style={{ fontSize: 9, color: '#555', marginTop: 2, textAlign: 'center', lineHeight: 1.2 }}>
+            <span style={{ fontSize: 9, color: 'var(--text-mute)', marginTop: 2, textAlign: 'center', lineHeight: 1.2 }}>
               {String(d[labelKey]).replace(/^\d{4}-S/, 'S')}
             </span>
           </div>
@@ -86,9 +86,9 @@ export default function ProgresoPage() {
   if (loading) {
     return (
       <div className="p-4 space-y-4">
-        <div className="h-8 rounded-lg animate-pulse" style={{ background: '#1a1d24', width: 160 }} />
-        <div className="h-48 rounded-2xl animate-pulse" style={{ background: '#1a1d24' }} />
-        <div className="h-48 rounded-2xl animate-pulse" style={{ background: '#1a1d24' }} />
+        <div className="h-8 rounded-lg animate-pulse" style={{ background: 'var(--bg-card2)', width: 160 }} />
+        <div className="h-48 rounded-2xl animate-pulse" style={{ background: 'var(--bg-card2)' }} />
+        <div className="h-48 rounded-2xl animate-pulse" style={{ background: 'var(--bg-card2)' }} />
       </div>
     );
   }
@@ -98,25 +98,25 @@ export default function ProgresoPage() {
 
   return (
     <div className="p-4 max-w-2xl mx-auto space-y-6">
-      <h1 className="text-xl font-bold pt-2" style={{ color: '#f0f0f0' }}>Progreso</h1>
+      <h1 className="text-xl font-bold pt-2" style={{ color: 'var(--text)' }}>Progreso</h1>
 
       {!hasGimnasio && !hasRunning && (
         <div
           className="rounded-2xl p-8 text-center"
-          style={{ background: '#1a1d24', border: '1px solid #2a2d36' }}
+          style={{ background: 'var(--bg-card2)', border: '1px solid #2a2d36' }}
         >
-          <svg className="w-10 h-10 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="#555" strokeWidth={1.5}>
+          <svg className="w-10 h-10 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="var(--text-mute)" strokeWidth={1.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
           </svg>
-          <p className="font-medium" style={{ color: '#ccc' }}>Sin datos de progreso</p>
-          <p className="text-sm mt-1" style={{ color: '#555' }}>Importa semanas para ver tus gráficas</p>
+          <p className="font-medium" style={{ color: 'var(--text-dim)' }}>Sin datos de progreso</p>
+          <p className="text-sm mt-1" style={{ color: 'var(--text-mute)' }}>Importa semanas para ver tus gráficas</p>
         </div>
       )}
 
       {/* Gimnasio section */}
       {hasGimnasio && (
         <div>
-          <p className="text-xs font-semibold uppercase tracking-widest mb-4" style={{ color: '#888' }}>
+          <p className="text-xs font-semibold uppercase tracking-widest mb-4" style={{ color: 'var(--text-dim)' }}>
             Gimnasio — Peso por ejercicio
           </p>
 
@@ -127,9 +127,9 @@ export default function ProgresoPage() {
               onChange={(e) => setSelectedEjercicio(e.target.value)}
               className="w-full px-4 py-3 rounded-xl text-sm focus:outline-none"
               style={{
-                background: '#111',
+                background: 'var(--bg)',
                 border: '1px solid #2a2d36',
-                color: '#f0f0f0',
+                color: 'var(--text)',
               }}
             >
               {Object.keys(data!.gimnasio!).map((ej) => (
@@ -147,14 +147,14 @@ export default function ProgresoPage() {
             return (
               <div
                 className="rounded-2xl p-4 mb-4"
-                style={{ background: '#1a1d24', border: '1px solid #2a2d36' }}
+                style={{ background: 'var(--bg-card2)', border: '1px solid #2a2d36' }}
               >
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-semibold text-sm" style={{ color: '#f0f0f0' }}>{selectedEjercicio}</h3>
+                  <h3 className="font-semibold text-sm" style={{ color: 'var(--text)' }}>{selectedEjercicio}</h3>
                   <div className="flex items-center gap-2">
                     <span
                       className="text-xs px-2 py-0.5 rounded-full font-medium"
-                      style={{ background: '#1e2d0e', color: '#c4f135' }}
+                      style={{ background: 'var(--accent-bg)', color: 'var(--accent)' }}
                     >
                       Máx {maxWeight} kg
                     </span>
@@ -168,8 +168,8 @@ export default function ProgresoPage() {
                   color="#2a3a1a"
                 />
                 <div className="flex justify-between mt-1">
-                  <span className="text-xs" style={{ color: '#555' }}>{ejData.length} semanas</span>
-                  <span className="text-xs" style={{ color: '#888' }}>Último: {last?.peso_kg} kg</span>
+                  <span className="text-xs" style={{ color: 'var(--text-mute)' }}>{ejData.length} semanas</span>
+                  <span className="text-xs" style={{ color: 'var(--text-dim)' }}>Último: {last?.peso_kg} kg</span>
                 </div>
               </div>
             );
@@ -187,17 +187,17 @@ export default function ProgresoPage() {
                   onClick={() => setSelectedEjercicio(ejercicio)}
                   className="w-full text-left rounded-xl p-3 transition-all"
                   style={{
-                    background: isSelected ? '#1e2a10' : '#1a1d24',
-                    border: `1px solid ${isSelected ? '#c4f135' : '#2a2d36'}`,
+                    background: isSelected ? '#1e2a10' : 'var(--bg-card2)',
+                    border: `1px solid ${isSelected ? 'var(--accent)' : 'var(--border)'}`,
                   }}
                 >
                   <div className="flex justify-between items-center">
-                    <span className="font-medium text-sm" style={{ color: '#f0f0f0' }}>{ejercicio}</span>
-                    <span className="text-sm font-semibold" style={{ color: '#c4f135' }}>
+                    <span className="font-medium text-sm" style={{ color: 'var(--text)' }}>{ejercicio}</span>
+                    <span className="text-sm font-semibold" style={{ color: 'var(--accent)' }}>
                       {last?.peso_kg ?? maxWeight} kg
                     </span>
                   </div>
-                  <p className="text-xs mt-0.5" style={{ color: '#555' }}>
+                  <p className="text-xs mt-0.5" style={{ color: 'var(--text-mute)' }}>
                     {d.length} semanas · Máx: {maxWeight} kg
                   </p>
                 </button>
@@ -210,16 +210,16 @@ export default function ProgresoPage() {
       {/* Running section */}
       {hasRunning && (
         <div>
-          <p className="text-xs font-semibold uppercase tracking-widest mb-4" style={{ color: '#888' }}>
+          <p className="text-xs font-semibold uppercase tracking-widest mb-4" style={{ color: 'var(--text-dim)' }}>
             Running — Distancia y ritmo
           </p>
 
           {/* Distance chart */}
           <div
             className="rounded-2xl p-4 mb-3"
-            style={{ background: '#1a1d24', border: '1px solid #2a2d36' }}
+            style={{ background: 'var(--bg-card2)', border: '1px solid #2a2d36' }}
           >
-            <p className="text-sm font-medium mb-3" style={{ color: '#ccc' }}>Distancia (km)</p>
+            <p className="text-sm font-medium mb-3" style={{ color: 'var(--text-dim)' }}>Distancia (km)</p>
             <BarChart
               data={data!.running!.map((r) => ({ semana: r.semana, distancia_km: r.distancia_km }))}
               valueKey="distancia_km"
@@ -233,9 +233,9 @@ export default function ProgresoPage() {
           {data!.running!.some((r) => r.pace !== null) && (
             <div
               className="rounded-2xl p-4 mb-3"
-              style={{ background: '#1a1d24', border: '1px solid #2a2d36' }}
+              style={{ background: 'var(--bg-card2)', border: '1px solid #2a2d36' }}
             >
-              <p className="text-sm font-medium mb-3" style={{ color: '#ccc' }}>Ritmo (min/km)</p>
+              <p className="text-sm font-medium mb-3" style={{ color: 'var(--text-dim)' }}>Ritmo (min/km)</p>
               <BarChart
                 data={data!.running!.filter((r) => r.pace !== null).map((r) => ({
                   semana: r.semana,
@@ -260,26 +260,26 @@ export default function ProgresoPage() {
                 <>
                   <div
                     className="rounded-xl p-3"
-                    style={{ background: '#1a1d24', border: '1px solid #2a2d36' }}
+                    style={{ background: 'var(--bg-card2)', border: '1px solid #2a2d36' }}
                   >
-                    <p className="text-xs" style={{ color: '#555' }}>Total km</p>
-                    <p className="text-xl font-bold" style={{ color: '#c4f135' }}>{totalDist.toFixed(1)}</p>
-                    <p className="text-xs" style={{ color: '#888' }}>en {data!.running!.length} semanas</p>
+                    <p className="text-xs" style={{ color: 'var(--text-mute)' }}>Total km</p>
+                    <p className="text-xl font-bold" style={{ color: 'var(--accent)' }}>{totalDist.toFixed(1)}</p>
+                    <p className="text-xs" style={{ color: 'var(--text-dim)' }}>en {data!.running!.length} semanas</p>
                   </div>
                   <div
                     className="rounded-xl p-3"
-                    style={{ background: '#1a1d24', border: '1px solid #2a2d36' }}
+                    style={{ background: 'var(--bg-card2)', border: '1px solid #2a2d36' }}
                   >
-                    <p className="text-xs" style={{ color: '#555' }}>Mejor semana</p>
-                    <p className="text-xl font-bold" style={{ color: '#c4f135' }}>{maxDist}</p>
-                    <p className="text-xs" style={{ color: '#888' }}>km</p>
+                    <p className="text-xs" style={{ color: 'var(--text-mute)' }}>Mejor semana</p>
+                    <p className="text-xl font-bold" style={{ color: 'var(--accent)' }}>{maxDist}</p>
+                    <p className="text-xs" style={{ color: 'var(--text-dim)' }}>km</p>
                   </div>
                   {bestPace !== null && (
                     <div
                       className="rounded-xl p-3 col-span-2"
                       style={{ background: '#2d2a0e', border: '1px solid #5a4a1a' }}
                     >
-                      <p className="text-xs" style={{ color: '#888' }}>Mejor ritmo</p>
+                      <p className="text-xs" style={{ color: 'var(--text-dim)' }}>Mejor ritmo</p>
                       <p className="text-xl font-bold" style={{ color: '#c4a030' }}>{bestPace.toFixed(2)} <span className="text-sm font-normal">min/km</span></p>
                     </div>
                   )}

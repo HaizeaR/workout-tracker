@@ -96,9 +96,9 @@ function MonthCalendar({ data, onDayClick }: { data: MonthData; onDayClick: (day
               onClick={() => onDayClick(summary)}
               className="aspect-square rounded-lg flex items-center justify-center text-xs font-semibold relative transition-all hover:scale-105 active:scale-95"
               style={{
-                background: style ? style.bg : '#1a1d24',
-                color: style ? style.color : '#f0f0f0',
-                border: `1px solid ${style ? style.color + '44' : '#2a2d36'}`,
+                background: style ? style.bg : 'var(--bg-card2)',
+                color: style ? style.color : 'var(--text)',
+                border: `1px solid ${style ? style.color + '44' : 'var(--border)'}`,
                 boxShadow: isCompleted && style ? `0 0 6px ${style.color}33` : undefined,
               }}
             >
@@ -106,7 +106,7 @@ function MonthCalendar({ data, onDayClick }: { data: MonthData; onDayClick: (day
               {isCompleted && (
                 <span
                   className="absolute bottom-0.5 right-0.5 w-1 h-1 rounded-full"
-                  style={{ background: style ? style.color : '#c4f135' }}
+                  style={{ background: style ? style.color : 'var(--accent)' }}
                 />
               )}
             </button>
@@ -139,13 +139,13 @@ export default function HistorialPage() {
   if (loading) {
     return (
       <div className="p-4 space-y-6">
-        <div className="h-7 w-32 rounded-lg animate-pulse" style={{ background: '#1a1d24' }} />
+        <div className="h-7 w-32 rounded-lg animate-pulse" style={{ background: 'var(--bg-card2)' }} />
         {[...Array(2)].map((_, i) => (
           <div key={i}>
-            <div className="h-5 w-24 rounded mb-3 animate-pulse" style={{ background: '#1a1d24' }} />
+            <div className="h-5 w-24 rounded mb-3 animate-pulse" style={{ background: 'var(--bg-card2)' }} />
             <div className="grid grid-cols-7 gap-1">
               {[...Array(35)].map((_, j) => (
-                <div key={j} className="aspect-square rounded-lg animate-pulse" style={{ background: '#1a1d24' }} />
+                <div key={j} className="aspect-square rounded-lg animate-pulse" style={{ background: 'var(--bg-card2)' }} />
               ))}
             </div>
           </div>
@@ -169,15 +169,15 @@ export default function HistorialPage() {
         ].map((t) => (
           <div key={t.label} className="flex items-center gap-1">
             <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: t.color }} />
-            <span className="text-xs font-medium" style={{ color: '#3c4260' }}>{t.label}</span>
+            <span className="text-xs font-medium" style={{ color: 'var(--text-mute)' }}>{t.label}</span>
           </div>
         ))}
       </div>
 
       {months.length === 0 ? (
-        <div className="text-center py-16" style={{ color: '#555' }}>
+        <div className="text-center py-16" style={{ color: 'var(--text-mute)' }}>
           <p className="text-3xl mb-3">📅</p>
-          <p className="font-medium" style={{ color: '#888' }}>Sin entrenos</p>
+          <p className="font-medium" style={{ color: 'var(--text-dim)' }}>Sin entrenos</p>
           <p className="text-sm mt-1">Importa un CSV para ver el historial</p>
         </div>
       ) : (
@@ -199,7 +199,7 @@ export default function HistorialPage() {
         >
           <div
             className="w-full max-w-sm rounded-2xl p-5"
-            style={{ background: '#13161d', border: '1px solid #2a2d36' }}
+            style={{ background: 'var(--bg-card)', border: '1px solid var(--border)' }}
             onClick={(e) => e.stopPropagation()}
           >
             {(() => {
@@ -212,40 +212,40 @@ export default function HistorialPage() {
                 <>
                   <div className="flex items-start justify-between mb-4">
                     <div>
-                      <p className="font-semibold capitalize" style={{ color: '#f0f0f0' }}>{label}</p>
+                      <p className="font-semibold capitalize" style={{ color: 'var(--text)' }}>{label}</p>
                       <div className="flex flex-wrap gap-1.5 mt-1.5">
                         {selected.tipos.map((t) => {
                           const s = getDayColor(t, []);
                           return (
                             <span key={t} className="text-xs px-2 py-0.5 rounded-full font-medium"
-                              style={{ background: s?.bg ?? '#1a1d24', color: s?.color ?? '#888' }}>
+                              style={{ background: s?.bg ?? 'var(--bg-card2)', color: s?.color ?? 'var(--text-dim)' }}>
                               {t}
                             </span>
                           );
                         })}
                         {selected.categorias.filter((c) => !selected.tipos.includes(c)).map((c) => (
                           <span key={c} className="text-xs px-2 py-0.5 rounded-full"
-                            style={{ background: '#1a1d24', color: '#888', border: '1px solid #2a2d36' }}>
+                            style={{ background: 'var(--bg-card2)', color: 'var(--text-dim)', border: '1px solid var(--border)' }}>
                             {c}
                           </span>
                         ))}
                       </div>
                     </div>
-                    <button onClick={() => setSelected(null)} className="text-xs p-1.5 rounded-lg" style={{ background: '#2a2d36', color: '#888' }}>
+                    <button onClick={() => setSelected(null)} className="text-xs p-1.5 rounded-lg" style={{ background: 'var(--border)', color: 'var(--text-dim)' }}>
                       ✕
                     </button>
                   </div>
 
                   <div className="flex items-center gap-4 py-3 rounded-xl px-4"
-                    style={{ background: style ? style.bg : '#1a1d24', border: `1px solid ${style ? style.color + '33' : '#2a2d36'}` }}>
+                    style={{ background: style ? style.bg : 'var(--bg-card2)', border: `1px solid ${style ? style.color + '33' : 'var(--border)'}` }}>
                     <div className="text-center">
-                      <p className="text-2xl font-bold" style={{ color: style?.color ?? '#f0f0f0' }}>{selected.total}</p>
-                      <p className="text-xs" style={{ color: '#666' }}>ejercicios</p>
+                      <p className="text-2xl font-bold" style={{ color: style?.color ?? 'var(--text)' }}>{selected.total}</p>
+                      <p className="text-xs" style={{ color: 'var(--text-dim)' }}>ejercicios</p>
                     </div>
                     {selected.hasCompleted && (
                       <div className="flex items-center gap-1.5">
-                        <span className="w-2 h-2 rounded-full" style={{ background: style?.color ?? '#c4f135' }} />
-                        <span className="text-sm" style={{ color: '#888' }}>Completado</span>
+                        <span className="w-2 h-2 rounded-full" style={{ background: style?.color ?? 'var(--accent)' }} />
+                        <span className="text-sm" style={{ color: 'var(--text-dim)' }}>Completado</span>
                       </div>
                     )}
                   </div>

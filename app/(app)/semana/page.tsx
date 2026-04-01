@@ -24,7 +24,7 @@ type SensacionLabel = 'fácil' | 'medio' | 'intenso';
 
 const SENSACION_MAP: Record<number, SensacionLabel> = { 1: 'fácil', 2: 'fácil', 3: 'medio', 4: 'intenso', 5: 'intenso' };
 const SENSACION_STYLE: Record<SensacionLabel, { bg: string; color: string }> = {
-  'fácil': { bg: '#1e2d0e', color: '#8ab030' },
+  'fácil': { bg: 'var(--accent-bg)', color: 'var(--accent-dim)' },
   'medio': { bg: '#2d2a0e', color: '#c4a030' },
   'intenso': { bg: '#2d1010', color: '#e05050' },
 };
@@ -48,9 +48,9 @@ import CategoriaSelect from '@/components/CategoriaSelect';
 
 function inputStyle(focused: boolean = false) {
   return {
-    background: '#111',
-    border: `1px solid ${focused ? '#c4f135' : '#2a2d36'}`,
-    color: '#f0f0f0',
+    background: 'var(--bg)',
+    border: `1px solid ${focused ? 'var(--accent)' : 'var(--border)'}`,
+    color: 'var(--text)',
   };
 }
 
@@ -510,10 +510,10 @@ export default function SemanaPage() {
 
   if (loading) {
     return (
-      <div className="p-4 space-y-4" style={{ background: '#0f1117', minHeight: '100vh' }}>
-        <div className="h-8 rounded-lg animate-pulse" style={{ background: '#1a1d24', width: '180px' }} />
-        <div className="h-20 rounded-xl animate-pulse" style={{ background: '#1a1d24' }} />
-        {[...Array(3)].map((_, i) => <div key={i} className="h-16 rounded-xl animate-pulse" style={{ background: '#1a1d24' }} />)}
+      <div className="p-4 space-y-4" style={{ background: 'var(--bg)', minHeight: '100vh' }}>
+        <div className="h-8 rounded-lg animate-pulse" style={{ background: 'var(--bg-card2)', width: '180px' }} />
+        <div className="h-20 rounded-xl animate-pulse" style={{ background: 'var(--bg-card2)' }} />
+        {[...Array(3)].map((_, i) => <div key={i} className="h-16 rounded-xl animate-pulse" style={{ background: 'var(--bg-card2)' }} />)}
       </div>
     );
   }
@@ -534,36 +534,36 @@ export default function SemanaPage() {
   const noDataWeek = selectedId === null;
 
   return (
-    <div className="p-4" style={{ background: '#0f1117', minHeight: '100vh' }}>
-      <h1 className="text-xl font-bold mb-4 pt-2" style={{ color: '#f0f0f0' }}>Semana</h1>
+    <div className="p-4" style={{ background: 'var(--bg)', minHeight: '100vh' }}>
+      <h1 className="text-xl font-bold mb-4 pt-2" style={{ color: 'var(--text)' }}>Semana</h1>
 
       {/* ── Week calendar strip ─────────────────────────────────────────────── */}
-      <div className="rounded-xl p-3 mb-4" style={{ background: '#1a1d24', border: '1px solid #2a2d36' }}>
+      <div className="rounded-xl p-3 mb-4" style={{ background: 'var(--bg-card2)', border: '1px solid #2a2d36' }}>
         {/* Navigation row */}
         <div className="flex items-center justify-between mb-3">
           <button
             onClick={() => navigateWeek(-1)}
             className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
-            style={{ background: '#2a2d36' }}
+            style={{ background: 'var(--border)' }}
             aria-label="Semana anterior"
           >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="#888" strokeWidth={2}>
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="var(--text-dim)" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
             </svg>
           </button>
           <div className="text-center">
-            <div className="text-xs font-semibold" style={{ color: '#c4f135' }}>
+            <div className="text-xs font-semibold" style={{ color: 'var(--accent)' }}>
               Semana {currentWeekNum} · {currentWeekYear}
             </div>
-            <div className="text-xs mt-0.5" style={{ color: '#888' }}>{weekRangeLabel}</div>
+            <div className="text-xs mt-0.5" style={{ color: 'var(--text-dim)' }}>{weekRangeLabel}</div>
           </div>
           <button
             onClick={() => navigateWeek(1)}
             className="w-8 h-8 rounded-lg flex items-center justify-center transition-colors"
-            style={{ background: '#2a2d36' }}
+            style={{ background: 'var(--border)' }}
             aria-label="Semana siguiente"
           >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="#888" strokeWidth={2}>
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="var(--text-dim)" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
             </svg>
           </button>
@@ -578,10 +578,10 @@ export default function SemanaPage() {
             const dayNum = date.getDate();
 
             let bg = 'transparent';
-            let textColor = '#555';
-            if (isToday) { bg = '#c4f135'; textColor = '#0f1117'; }
-            else if (isDone) { bg = '#1e2d0e'; textColor = '#8ab030'; }
-            else if (hasPlan) { textColor = '#f0f0f0'; }
+            let textColor = 'var(--text-mute)';
+            if (isToday) { bg = 'var(--accent)'; textColor = 'var(--bg)'; }
+            else if (isDone) { bg = 'var(--accent-bg)'; textColor = 'var(--accent-dim)'; }
+            else if (hasPlan) { textColor = 'var(--text)'; }
 
             return (
               <button
@@ -590,12 +590,12 @@ export default function SemanaPage() {
                 className="flex flex-col items-center py-2 rounded-lg transition-colors"
                 style={{ background: bg, cursor: hasPlan ? 'pointer' : 'default' }}
               >
-                <span className="text-xs font-medium mb-1" style={{ color: isToday ? '#0f1117' : '#888' }}>{label}</span>
+                <span className="text-xs font-medium mb-1" style={{ color: isToday ? 'var(--bg)' : 'var(--text-dim)' }}>{label}</span>
                 <span className="text-sm font-bold" style={{ color: textColor }}>{dayNum}</span>
                 {/* Dot indicator */}
                 <div className="h-1.5 mt-1 flex items-center justify-center">
                   {hasPlan && !isDone && (
-                    <span className="w-1.5 h-1.5 rounded-full" style={{ background: isToday ? '#0f1117' : '#c4f135' }} />
+                    <span className="w-1.5 h-1.5 rounded-full" style={{ background: isToday ? 'var(--bg)' : 'var(--accent)' }} />
                   )}
                 </div>
               </button>
@@ -606,8 +606,8 @@ export default function SemanaPage() {
 
       {/* ── No data week ──────────────────────────────────────────────────────── */}
       {noDataWeek && (
-        <div className="rounded-xl p-5 mb-4" style={{ background: '#1a1d24', border: '1px solid #2a2d36' }}>
-          <p className="text-center text-sm mb-4" style={{ color: '#888' }}>No hay entrenos esta semana</p>
+        <div className="rounded-xl p-5 mb-4" style={{ background: 'var(--bg-card2)', border: '1px solid #2a2d36' }}>
+          <p className="text-center text-sm mb-4" style={{ color: 'var(--text-dim)' }}>No hay entrenos esta semana</p>
           {showCsvUpload ? (
             <div>
               <CsvUpload
@@ -623,7 +623,7 @@ export default function SemanaPage() {
               <button
                 onClick={() => setShowCsvUpload(false)}
                 className="mt-3 w-full py-2 rounded-lg text-sm"
-                style={{ background: '#2a2d36', color: '#888' }}
+                style={{ background: 'var(--border)', color: 'var(--text-dim)' }}
               >
                 Cancelar
               </button>
@@ -633,7 +633,7 @@ export default function SemanaPage() {
               <button
                 onClick={() => setShowCsvUpload(true)}
                 className="flex-1 py-2.5 rounded-xl text-sm font-semibold transition-colors"
-                style={{ background: '#2a2d36', color: '#f0f0f0', border: '1px solid #3a3d46' }}
+                style={{ background: 'var(--border)', color: 'var(--text)', border: '1px solid #3a3d46' }}
               >
                 Subir CSV
               </button>
@@ -641,7 +641,7 @@ export default function SemanaPage() {
                 onClick={handleCreateWeek}
                 disabled={creatingWeek}
                 className="flex-1 py-2.5 rounded-xl text-sm font-semibold"
-                style={{ background: '#c4f135', color: '#0f1117', opacity: creatingWeek ? 0.7 : 1 }}
+                style={{ background: 'var(--accent)', color: 'var(--bg)', opacity: creatingWeek ? 0.7 : 1 }}
               >
                 {creatingWeek ? 'Creando...' : 'Programar manualmente'}
               </button>
@@ -652,23 +652,23 @@ export default function SemanaPage() {
 
       {/* ── Progress bar ──────────────────────────────────────────────────────── */}
       {currentSemana && (
-        <div className="rounded-xl p-3 mb-4 flex items-center gap-3" style={{ background: '#1a1d24', border: '1px solid #2a2d36' }}>
+        <div className="rounded-xl p-3 mb-4 flex items-center gap-3" style={{ background: 'var(--bg-card2)', border: '1px solid #2a2d36' }}>
           {currentSemana.foco && (
-            <span className="text-xs px-2.5 py-1 rounded-full font-medium flex-shrink-0" style={{ background: '#2a3a0e', color: '#c4f135' }}>
+            <span className="text-xs px-2.5 py-1 rounded-full font-medium flex-shrink-0" style={{ background: 'var(--accent-bg)', color: 'var(--accent)' }}>
               {currentSemana.foco}
             </span>
           )}
           <div className="flex-1">
-            <div className="flex justify-between text-xs mb-1.5" style={{ color: '#888' }}>
+            <div className="flex justify-between text-xs mb-1.5" style={{ color: 'var(--text-dim)' }}>
               <span>Progreso</span>
-              <span style={{ color: '#f0f0f0' }}>{currentSemana.completadas}/{currentSemana.totalSesiones}</span>
+              <span style={{ color: 'var(--text)' }}>{currentSemana.completadas}/{currentSemana.totalSesiones}</span>
             </div>
-            <div className="h-1.5 rounded-full overflow-hidden" style={{ background: '#2a2d36' }}>
+            <div className="h-1.5 rounded-full overflow-hidden" style={{ background: 'var(--border)' }}>
               <div
                 className="h-full rounded-full transition-all"
                 style={{
                   width: currentSemana.totalSesiones > 0 ? `${(currentSemana.completadas / currentSemana.totalSesiones) * 100}%` : '0%',
-                  background: '#c4f135',
+                  background: 'var(--accent)',
                 }}
               />
             </div>
@@ -678,15 +678,15 @@ export default function SemanaPage() {
 
       {/* ── Empty semana (created but no exercises yet) ────────────────────── */}
       {isEmptySemana && (
-        <div className="rounded-xl p-5 mb-4" style={{ background: '#1a1d24', border: '1px dashed #2a2d36' }}>
-          <p className="text-center text-sm mb-4" style={{ color: '#888' }}>Semana vacía — añade tu primer ejercicio</p>
+        <div className="rounded-xl p-5 mb-4" style={{ background: 'var(--bg-card2)', border: '1px dashed #2a2d36' }}>
+          <p className="text-center text-sm mb-4" style={{ color: 'var(--text-dim)' }}>Semana vacía — añade tu primer ejercicio</p>
 
           {addingTopLevel ? (
-            <div className="p-3 rounded-xl" style={{ background: '#111', border: '1px solid #2a2d36' }}>
-              <p className="text-xs font-semibold uppercase tracking-wide mb-3" style={{ color: '#c4f135' }}>Nuevo ejercicio</p>
+            <div className="p-3 rounded-xl" style={{ background: 'var(--bg)', border: '1px solid #2a2d36' }}>
+              <p className="text-xs font-semibold uppercase tracking-wide mb-3" style={{ color: 'var(--accent)' }}>Nuevo ejercicio</p>
               <div className="space-y-2">
                 <div>
-                  <label className="block text-xs mb-1" style={{ color: '#555' }}>Fecha *</label>
+                  <label className="block text-xs mb-1" style={{ color: 'var(--text-mute)' }}>Fecha *</label>
                   <input
                     type="date"
                     value={topAddForm.fecha}
@@ -717,7 +717,7 @@ export default function SemanaPage() {
                     { key: 'ritmo', label: 'Ritmo min/km' },
                   ].map(({ key, label }) => (
                     <div key={key}>
-                      <label className="block text-xs mb-1" style={{ color: '#555' }}>{label}</label>
+                      <label className="block text-xs mb-1" style={{ color: 'var(--text-mute)' }}>{label}</label>
                       <input
                         type="number" min="0" step="0.05"
                         value={topAddForm[key as keyof PlanEditState]}
@@ -733,14 +733,14 @@ export default function SemanaPage() {
                     onClick={handleTopLevelAdd}
                     disabled={savingTopAdd || !topAddForm.ejercicio.trim() || !topAddForm.fecha}
                     className="flex-1 py-2 rounded-lg text-sm font-semibold"
-                    style={{ background: '#c4f135', color: '#0f1117', opacity: savingTopAdd ? 0.7 : 1 }}
+                    style={{ background: 'var(--accent)', color: 'var(--bg)', opacity: savingTopAdd ? 0.7 : 1 }}
                   >
                     {savingTopAdd ? 'Añadiendo...' : 'Añadir'}
                   </button>
                   <button
                     onClick={() => { setAddingTopLevel(false); setTopAddForm({ ...emptyPlanEdit(), fecha: '' }); }}
                     className="px-4 py-2 rounded-lg text-sm"
-                    style={{ background: '#2a2d36', color: '#888' }}
+                    style={{ background: 'var(--border)', color: 'var(--text-dim)' }}
                   >
                     Cancelar
                   </button>
@@ -751,7 +751,7 @@ export default function SemanaPage() {
             <button
               onClick={() => setAddingTopLevel(true)}
               className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-semibold"
-              style={{ background: '#c4f135', color: '#0f1117' }}
+              style={{ background: 'var(--accent)', color: 'var(--bg)' }}
             >
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
@@ -765,7 +765,7 @@ export default function SemanaPage() {
       {/* ── Accordion ─────────────────────────────────────────────────────────── */}
       {loadingDetail ? (
         <div className="space-y-3">
-          {[...Array(4)].map((_, i) => <div key={i} className="h-14 rounded-xl animate-pulse" style={{ background: '#1a1d24' }} />)}
+          {[...Array(4)].map((_, i) => <div key={i} className="h-14 rounded-xl animate-pulse" style={{ background: 'var(--bg-card2)' }} />)}
         </div>
       ) : (
         <div className="space-y-3">
@@ -773,17 +773,17 @@ export default function SemanaPage() {
           {selectedId !== null && !isEmptySemana && (
             <div>
               {addingTopLevel ? (
-                <div className="rounded-xl p-4" style={{ background: '#1a1d24', border: '1px solid #c4f13544' }}>
-                  <p className="text-xs font-semibold uppercase tracking-wide mb-3" style={{ color: '#c4f135' }}>Nuevo día de entreno</p>
+                <div className="rounded-xl p-4" style={{ background: 'var(--bg-card2)', border: '1px solid #c4f13544' }}>
+                  <p className="text-xs font-semibold uppercase tracking-wide mb-3" style={{ color: 'var(--accent)' }}>Nuevo día de entreno</p>
                   <div className="space-y-2">
                     <div>
-                      <label className="block text-xs mb-1" style={{ color: '#555' }}>Fecha *</label>
+                      <label className="block text-xs mb-1" style={{ color: 'var(--text-mute)' }}>Fecha *</label>
                       <input
                         type="date"
                         value={topAddForm.fecha}
                         onChange={(e) => setTopAddForm((p) => ({ ...p, fecha: e.target.value }))}
                         className="w-full px-3 py-2 rounded-lg text-sm focus:outline-none"
-                        style={{ background: '#111', border: '1px solid #2a2d36', color: '#f0f0f0', colorScheme: 'dark' }}
+                        style={{ background: 'var(--bg)', border: '1px solid #2a2d36', color: 'var(--text)', colorScheme: 'dark' }}
                       />
                     </div>
                     <input
@@ -792,7 +792,7 @@ export default function SemanaPage() {
                       onChange={(e) => setTopAddForm((p) => ({ ...p, ejercicio: e.target.value }))}
                       placeholder="Ejercicio *"
                       className="w-full px-3 py-2 rounded-lg text-sm focus:outline-none"
-                      style={{ background: '#111', border: '1px solid #2a2d36', color: '#f0f0f0' }}
+                      style={{ background: 'var(--bg)', border: '1px solid #2a2d36', color: 'var(--text)' }}
                       autoFocus
                     />
                     <CategoriaSelect value={topAddForm.categoria} onChange={(v) => setTopAddForm((p) => ({ ...p, categoria: v }))} />
@@ -805,13 +805,13 @@ export default function SemanaPage() {
                         { key: 'ritmo', label: 'Ritmo min/km' },
                       ].map(({ key, label }) => (
                         <div key={key}>
-                          <label className="block text-xs mb-1" style={{ color: '#555' }}>{label}</label>
+                          <label className="block text-xs mb-1" style={{ color: 'var(--text-mute)' }}>{label}</label>
                           <input
                             type="number" min="0" step="0.1"
                             value={topAddForm[key as keyof PlanEditState]}
                             onChange={(e) => setTopAddForm((p) => ({ ...p, [key]: e.target.value }))}
                             className="w-full px-2 py-1.5 rounded-lg text-center text-sm focus:outline-none"
-                            style={{ background: '#111', border: '1px solid #2a2d36', color: '#f0f0f0' }}
+                            style={{ background: 'var(--bg)', border: '1px solid #2a2d36', color: 'var(--text)' }}
                           />
                         </div>
                       ))}
@@ -821,14 +821,14 @@ export default function SemanaPage() {
                         onClick={handleTopLevelAdd}
                         disabled={savingTopAdd || !topAddForm.ejercicio.trim() || !topAddForm.fecha}
                         className="flex-1 py-2 rounded-lg text-sm font-semibold"
-                        style={{ background: '#c4f135', color: '#0f1117', opacity: savingTopAdd ? 0.7 : 1 }}
+                        style={{ background: 'var(--accent)', color: 'var(--bg)', opacity: savingTopAdd ? 0.7 : 1 }}
                       >
                         {savingTopAdd ? 'Añadiendo...' : 'Añadir'}
                       </button>
                       <button
                         onClick={() => { setAddingTopLevel(false); setTopAddForm({ ...emptyPlanEdit(), fecha: '' }); }}
                         className="px-4 py-2 rounded-lg text-sm"
-                        style={{ background: '#2a2d36', color: '#888' }}
+                        style={{ background: 'var(--border)', color: 'var(--text-dim)' }}
                       >
                         Cancelar
                       </button>
@@ -839,7 +839,7 @@ export default function SemanaPage() {
                 <button
                   onClick={() => setAddingTopLevel(true)}
                   className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm transition-all"
-                  style={{ border: '1px dashed #2a2d36', color: '#555' }}
+                  style={{ border: '1px dashed #2a2d36', color: 'var(--text-mute)' }}
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
@@ -866,18 +866,18 @@ export default function SemanaPage() {
                 key={fecha}
                 ref={(el) => { dayRefs.current[fecha] = el; }}
                 className="rounded-xl overflow-hidden"
-                style={{ border: `1px solid ${isToday ? '#c4f135' : allDone ? (getDayColor(sessions[0]?.tipo, sessions.map(x => x.categoria))?.color ?? '#3a5a1a') + '88' : '#2a2d36'}` }}
+                style={{ border: `1px solid ${isToday ? 'var(--accent)' : allDone ? (getDayColor(sessions[0]?.tipo, sessions.map(x => x.categoria))?.color ?? 'var(--accent-border)') + '88' : 'var(--border)'}` }}
               >
                 {/* Day header */}
-                <div style={{ background: allDone ? (getDayColor(sessions[0]?.tipo, sessions.map(x => x.categoria))?.bg ?? '#1e2d0e') : '#1a1d24' }}>
+                <div style={{ background: allDone ? (getDayColor(sessions[0]?.tipo, sessions.map(x => x.categoria))?.bg ?? 'var(--accent-bg)') : 'var(--bg-card2)' }}>
                   <button
                     onClick={() => toggleDay(fecha)}
                     className="w-full flex items-center justify-between px-4 py-3"
                   >
                     <div className="flex items-center gap-2">
-                      {isToday && <span className="w-2 h-2 rounded-full" style={{ background: '#c4f135' }} />}
-                      <span className="font-medium text-sm capitalize" style={{ color: allDone ? '#8ab030' : '#f0f0f0' }}>{dateLabel}</span>
-                      {isToday && <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: '#c4f135', color: '#0f1117' }}>hoy</span>}
+                      {isToday && <span className="w-2 h-2 rounded-full" style={{ background: 'var(--accent)' }} />}
+                      <span className="font-medium text-sm capitalize" style={{ color: allDone ? 'var(--accent-dim)' : 'var(--text)' }}>{dateLabel}</span>
+                      {isToday && <span className="text-xs px-1.5 py-0.5 rounded" style={{ background: 'var(--accent)', color: 'var(--bg)' }}>hoy</span>}
                       {(() => {
                         const s = getDayColor(sessions[0]?.tipo, sessions.map((x) => x.categoria));
                         const label = sessions[0]?.tipo ?? sessions.find((x) => x.categoria)?.categoria;
@@ -900,15 +900,15 @@ export default function SemanaPage() {
                       <button
                         onClick={(e) => { e.stopPropagation(); setMovingDay(movingDay === fecha ? null : fecha); setMoveTarget(fecha); }}
                         className="w-6 h-6 rounded flex items-center justify-center"
-                        style={{ background: movingDay === fecha ? '#2a3a0e' : 'transparent' }}
+                        style={{ background: movingDay === fecha ? 'var(--accent-bg)' : 'transparent' }}
                         title="Cambiar día"
                       >
-                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke={movingDay === fecha ? '#c4f135' : '#555'} strokeWidth={2}>
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke={movingDay === fecha ? 'var(--accent)' : 'var(--text-mute)'} strokeWidth={2}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                         </svg>
                       </button>
-                      <span className="text-xs" style={{ color: '#888' }}>{doneCount}/{sessions.length}</span>
-                      <svg className="w-4 h-4" style={{ color: '#555', transform: isOpen ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.2s' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <span className="text-xs" style={{ color: 'var(--text-dim)' }}>{doneCount}/{sessions.length}</span>
+                      <svg className="w-4 h-4" style={{ color: 'var(--text-mute)', transform: isOpen ? 'rotate(180deg)' : 'rotate(0)', transition: 'transform 0.2s' }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                       </svg>
                     </div>
@@ -922,20 +922,20 @@ export default function SemanaPage() {
                         value={moveTarget}
                         onChange={(e) => setMoveTarget(e.target.value)}
                         className="flex-1 px-3 py-1.5 rounded-lg text-sm focus:outline-none"
-                        style={{ background: '#111', border: '1px solid #2a2d36', color: '#f0f0f0', colorScheme: 'dark' }}
+                        style={{ background: 'var(--bg)', border: '1px solid #2a2d36', color: 'var(--text)', colorScheme: 'dark' }}
                       />
                       <button
                         onClick={() => handleMoveDay(fecha)}
                         disabled={savingMove || !moveTarget || moveTarget === fecha}
                         className="px-3 py-1.5 rounded-lg text-sm font-semibold"
-                        style={{ background: '#c4f135', color: '#0f1117', opacity: savingMove ? 0.7 : 1 }}
+                        style={{ background: 'var(--accent)', color: 'var(--bg)', opacity: savingMove ? 0.7 : 1 }}
                       >
                         {savingMove ? '...' : 'Mover'}
                       </button>
                       <button
                         onClick={() => setMovingDay(null)}
                         className="px-3 py-1.5 rounded-lg text-sm"
-                        style={{ background: '#2a2d36', color: '#888' }}
+                        style={{ background: 'var(--border)', color: 'var(--text-dim)' }}
                       >
                         ✕
                       </button>
@@ -945,10 +945,10 @@ export default function SemanaPage() {
 
                 {/* Exercise cards */}
                 {isOpen && (
-                  <div className="divide-y" style={{ borderColor: '#2a2d36' }}>
+                  <div className="divide-y" style={{ borderColor: 'var(--border)' }}>
                     {/* Tipo selector for this day */}
-                    <div className="px-4 py-2 flex items-center gap-2 flex-wrap" style={{ background: '#13161d' }}>
-                      <span className="text-xs" style={{ color: '#555' }}>Tipo:</span>
+                    <div className="px-4 py-2 flex items-center gap-2 flex-wrap" style={{ background: 'var(--bg-card)' }}>
+                      <span className="text-xs" style={{ color: 'var(--text-mute)' }}>Tipo:</span>
                       {TIPOS.map((tipo) => {
                         const dayTipo = sessions[0]?.tipo ?? null;
                         const isActive = dayTipo === tipo;
@@ -960,7 +960,7 @@ export default function SemanaPage() {
                             className="px-2.5 py-0.5 rounded-full text-xs font-medium transition-all"
                             style={isActive
                               ? { background: ts.bg, color: ts.color, border: `1px solid ${ts.color}` }
-                              : { background: 'transparent', color: '#555', border: '1px solid #2a2d36' }}
+                              : { background: 'transparent', color: 'var(--text-mute)', border: '1px solid #2a2d36' }}
                           >
                             {tipo}
                           </button>
@@ -982,10 +982,10 @@ export default function SemanaPage() {
                       return bloqueGroups.map((group, gi) => (
                         <div key={gi}>
                           {group.bloque && (
-                            <div className="px-4 py-2 flex items-center gap-2" style={{ background: '#0f1117', borderBottom: '1px solid #2a2d36' }}>
-                              <span className="text-xs font-bold uppercase tracking-wider" style={{ color: '#c4f135' }}>{group.bloque}</span>
+                            <div className="px-4 py-2 flex items-center gap-2" style={{ background: 'var(--bg)', borderBottom: '1px solid #2a2d36' }}>
+                              <span className="text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--accent)' }}>{group.bloque}</span>
                               {group.tipo_bloque && (
-                                <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: '#2a2d36', color: '#888' }}>{group.tipo_bloque}</span>
+                                <span className="text-xs px-2 py-0.5 rounded-full" style={{ background: 'var(--border)', color: 'var(--text-dim)' }}>{group.tipo_bloque}</span>
                               )}
                             </div>
                           )}
@@ -1030,14 +1030,14 @@ export default function SemanaPage() {
                         : null;
 
                       return (
-                        <div key={sesion.id} className="px-4 py-4" style={{ background: completado ? '#162012' : '#111720' }}>
+                        <div key={sesion.id} className="px-4 py-4" style={{ background: completado ? '#162012' : 'var(--bg-card)' }}>
 
                           {/* Exercise header */}
                           <div className="flex items-start justify-between mb-3">
                             <div className="flex-1 min-w-0">
-                              <p className="font-medium text-sm" style={{ color: '#f0f0f0' }}>{sesion.ejercicio}</p>
-                              {sesion.categoria && <p className="text-xs mt-0.5" style={{ color: '#888' }}>{sesion.categoria}</p>}
-                              {planSummary && <p className="text-xs mt-1" style={{ color: '#555' }}>Plan: {planSummary}</p>}
+                              <p className="font-medium text-sm" style={{ color: 'var(--text)' }}>{sesion.ejercicio}</p>
+                              {sesion.categoria && <p className="text-xs mt-0.5" style={{ color: 'var(--text-dim)' }}>{sesion.categoria}</p>}
+                              {planSummary && <p className="text-xs mt-1" style={{ color: 'var(--text-mute)' }}>Plan: {planSummary}</p>}
                             </div>
                             <div className="flex items-center gap-1.5 ml-2 flex-shrink-0">
                               {/* Order up/down (only if multiple exercises on same day) */}
@@ -1049,7 +1049,7 @@ export default function SemanaPage() {
                                     className="w-6 h-6 rounded flex items-center justify-center"
                                     style={{ opacity: dayExercises[0].id === sesion.id ? 0.2 : 1 }}
                                   >
-                                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="#888" strokeWidth={2.5}>
+                                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="var(--text-dim)" strokeWidth={2.5}>
                                       <path strokeLinecap="round" strokeLinejoin="round" d="M5 15l7-7 7 7" />
                                     </svg>
                                   </button>
@@ -1059,7 +1059,7 @@ export default function SemanaPage() {
                                     className="w-6 h-6 rounded flex items-center justify-center"
                                     style={{ opacity: dayExercises[dayExercises.length - 1].id === sesion.id ? 0.2 : 1 }}
                                   >
-                                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="#888" strokeWidth={2.5}>
+                                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="var(--text-dim)" strokeWidth={2.5}>
                                       <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                                     </svg>
                                   </button>
@@ -1069,10 +1069,10 @@ export default function SemanaPage() {
                               <button
                                 onClick={() => isEditingThis ? setEditingPlan(null) : startEditPlan(sesion)}
                                 className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors"
-                                style={{ background: isEditingThis ? '#2a3a0e' : '#2a2d36' }}
+                                style={{ background: isEditingThis ? 'var(--accent-bg)' : 'var(--border)' }}
                                 title="Editar plan"
                               >
-                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke={isEditingThis ? '#c4f135' : '#888'} strokeWidth={2}>
+                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke={isEditingThis ? 'var(--accent)' : 'var(--text-dim)'} strokeWidth={2}>
                                   <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                 </svg>
                               </button>
@@ -1081,7 +1081,7 @@ export default function SemanaPage() {
                                 onClick={() => handleDelete(sesion.id)}
                                 disabled={isDeleting}
                                 className="w-7 h-7 rounded-lg flex items-center justify-center transition-colors"
-                                style={{ background: '#2a2d36' }}
+                                style={{ background: 'var(--border)' }}
                                 title="Eliminar ejercicio"
                               >
                                 {isDeleting ? (
@@ -1097,12 +1097,12 @@ export default function SemanaPage() {
                                 onClick={() => handleToggleCompletado(ejec.id, completado as boolean)}
                                 disabled={isSaving}
                                 className="w-8 h-8 rounded-full flex items-center justify-center transition-colors"
-                                style={{ background: completado ? '#2a4a12' : '#2a2d36' }}
+                                style={{ background: completado ? '#2a4a12' : 'var(--border)' }}
                               >
                                 {isSaving && !isDirty ? (
-                                  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="#888"><circle className="opacity-25" cx="12" cy="12" r="10" strokeWidth="4" /><path className="opacity-75" fill="#888" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
+                                  <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="var(--text-dim)"><circle className="opacity-25" cx="12" cy="12" r="10" strokeWidth="4" /><path className="opacity-75" fill="var(--text-dim)" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" /></svg>
                                 ) : (
-                                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke={completado ? '#8ab030' : '#555'} strokeWidth={2.5}>
+                                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke={completado ? 'var(--accent-dim)' : 'var(--text-mute)'} strokeWidth={2.5}>
                                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                                   </svg>
                                 )}
@@ -1112,8 +1112,8 @@ export default function SemanaPage() {
 
                           {/* Plan edit form */}
                           {isEditingThis && (
-                            <div className="mb-3 p-3 rounded-xl" style={{ background: '#1a2010', border: '1px solid #3a4a1a' }}>
-                              <p className="text-xs font-semibold uppercase tracking-wide mb-3" style={{ color: '#c4f135' }}>Editar plan</p>
+                            <div className="mb-3 p-3 rounded-xl" style={{ background: 'var(--accent-bg)', border: '1px solid #3a4a1a' }}>
+                              <p className="text-xs font-semibold uppercase tracking-wide mb-3" style={{ color: 'var(--accent)' }}>Editar plan</p>
                               <div className="space-y-2">
                                 <input
                                   type="text"
@@ -1134,7 +1134,7 @@ export default function SemanaPage() {
                                     { key: 'peso_kg', label: 'Peso kg' },
                                   ].map(({ key, label }) => (
                                     <div key={key}>
-                                      <label className="block text-xs mb-1" style={{ color: '#555' }}>{label}</label>
+                                      <label className="block text-xs mb-1" style={{ color: 'var(--text-mute)' }}>{label}</label>
                                       <input
                                         type="number"
                                         min="0"
@@ -1150,7 +1150,7 @@ export default function SemanaPage() {
                                     { key: 'ritmo', label: 'Ritmo min/km' },
                                   ].map(({ key, label }) => (
                                     <div key={key}>
-                                      <label className="block text-xs mb-1" style={{ color: '#555' }}>{label}</label>
+                                      <label className="block text-xs mb-1" style={{ color: 'var(--text-mute)' }}>{label}</label>
                                       <input
                                         type="number"
                                         min="0"
@@ -1168,14 +1168,14 @@ export default function SemanaPage() {
                                     onClick={() => handleSavePlan(sesion.id)}
                                     disabled={savingPlan || !planForm.ejercicio.trim()}
                                     className="flex-1 py-2 rounded-lg text-sm font-semibold"
-                                    style={{ background: '#c4f135', color: '#0f1117', opacity: savingPlan ? 0.7 : 1 }}
+                                    style={{ background: 'var(--accent)', color: 'var(--bg)', opacity: savingPlan ? 0.7 : 1 }}
                                   >
                                     {savingPlan ? 'Guardando...' : 'Guardar plan'}
                                   </button>
                                   <button
                                     onClick={() => setEditingPlan(null)}
                                     className="px-4 py-2 rounded-lg text-sm"
-                                    style={{ background: '#2a2d36', color: '#888' }}
+                                    style={{ background: 'var(--border)', color: 'var(--text-dim)' }}
                                   >
                                     Cancelar
                                   </button>
@@ -1189,8 +1189,8 @@ export default function SemanaPage() {
                             <div className="mb-3">
                               <div className="grid grid-cols-2 gap-2 mb-2">
                                 {/* Distancia */}
-                                <div className="rounded-xl p-3 text-center" style={{ background: '#111', border: '1px solid #2a2d36' }}>
-                                  <label className="block text-xs mb-1" style={{ color: '#555' }}>Distancia</label>
+                                <div className="rounded-xl p-3 text-center" style={{ background: 'var(--bg)', border: '1px solid #2a2d36' }}>
+                                  <label className="block text-xs mb-1" style={{ color: 'var(--text-mute)' }}>Distancia</label>
                                   <input
                                     type="number" min="0" step="0.1"
                                     value={(getFieldValue(ejec, 'distancia_km') as string | number) ?? ''}
@@ -1203,13 +1203,13 @@ export default function SemanaPage() {
                                       }
                                     }}
                                     className="w-full bg-transparent text-center text-2xl font-bold focus:outline-none"
-                                    style={{ color: '#f0f0f0' }}
+                                    style={{ color: 'var(--text)' }}
                                   />
-                                  <span className="text-xs" style={{ color: '#555' }}>km</span>
+                                  <span className="text-xs" style={{ color: 'var(--text-mute)' }}>km</span>
                                 </div>
                                 {/* Ritmo */}
-                                <div className="rounded-xl p-3 text-center" style={{ background: '#111', border: '1px solid #2a2d36' }}>
-                                  <label className="block text-xs mb-1" style={{ color: '#555' }}>Ritmo</label>
+                                <div className="rounded-xl p-3 text-center" style={{ background: 'var(--bg)', border: '1px solid #2a2d36' }}>
+                                  <label className="block text-xs mb-1" style={{ color: 'var(--text-mute)' }}>Ritmo</label>
                                   <input
                                     type="number" min="0" step="0.05"
                                     value={ritmoInputVal}
@@ -1223,16 +1223,16 @@ export default function SemanaPage() {
                                       }
                                     }}
                                     className="w-full bg-transparent text-center text-2xl font-bold focus:outline-none"
-                                    style={{ color: '#f0f0f0' }}
+                                    style={{ color: 'var(--text)' }}
                                   />
-                                  <span className="text-xs" style={{ color: '#555' }}>min/km</span>
-                                  {kmh && <span className="text-xs block mt-0.5" style={{ color: '#555' }}>{kmh} km/h</span>}
+                                  <span className="text-xs" style={{ color: 'var(--text-mute)' }}>min/km</span>
+                                  {kmh && <span className="text-xs block mt-0.5" style={{ color: 'var(--text-mute)' }}>{kmh} km/h</span>}
                                 </div>
                               </div>
                               {pace && (
-                                <div className="rounded-xl px-4 py-2 flex items-center justify-between" style={{ background: '#1e2a10', border: '1px solid #3a4a1a' }}>
-                                  <span className="text-xs" style={{ color: '#8ab030' }}>Guardado</span>
-                                  <span className="text-sm font-semibold" style={{ color: '#c4f135' }}>
+                                <div className="rounded-xl px-4 py-2 flex items-center justify-between" style={{ background: 'var(--accent-bg)', border: '1px solid #3a4a1a' }}>
+                                  <span className="text-xs" style={{ color: 'var(--accent-dim)' }}>Guardado</span>
+                                  <span className="text-sm font-semibold" style={{ color: 'var(--accent)' }}>
                                     {Math.floor(pace)}:{String(Math.round((pace % 1) * 60)).padStart(2, '0')} min/km · {(60 / pace).toFixed(1)} km/h
                                   </span>
                                 </div>
@@ -1246,15 +1246,15 @@ export default function SemanaPage() {
                                 { field: 'peso_kg' as keyof Ejecucion, label: 'Peso (kg)', step: '0.5' },
                               ].map(({ field, label, step }) => (
                                 <div key={field}>
-                                  <label className="block text-xs mb-1" style={{ color: '#555' }}>{label}</label>
+                                  <label className="block text-xs mb-1" style={{ color: 'var(--text-mute)' }}>{label}</label>
                                   <input
                                     type="number" min="0" step={step}
                                     value={(getFieldValue(ejec, field) as string | number) ?? ''}
                                     onChange={(e) => handleChange(ejec.id, field, e.target.value ? parseFloat(e.target.value) : null)}
                                     className="w-full px-2 py-1.5 rounded-lg text-center text-sm focus:outline-none"
-                                    style={{ background: '#111', border: '1px solid #2a2d36', color: '#f0f0f0' }}
-                                    onFocus={(e) => (e.target.style.borderColor = '#c4f135')}
-                                    onBlur={(e) => (e.target.style.borderColor = '#2a2d36')}
+                                    style={{ background: 'var(--bg)', border: '1px solid #2a2d36', color: 'var(--text)' }}
+                                    onFocus={(e) => (e.target.style.borderColor = 'var(--accent)')}
+                                    onBlur={(e) => (e.target.style.borderColor = 'var(--border)')}
                                   />
                                 </div>
                               ))}
@@ -1263,7 +1263,7 @@ export default function SemanaPage() {
 
                           {/* Sensacion + dolor */}
                           <div className="flex flex-wrap items-center gap-2 mb-3">
-                            <span className="text-xs" style={{ color: '#555' }}>Sensación:</span>
+                            <span className="text-xs" style={{ color: 'var(--text-mute)' }}>Sensación:</span>
                             {(['fácil', 'medio', 'intenso'] as SensacionLabel[]).map((label) => {
                               const isActive = sensacionLabel === label;
                               const val = label === 'fácil' ? 2 : label === 'medio' ? 3 : 5;
@@ -1272,7 +1272,7 @@ export default function SemanaPage() {
                                   key={label}
                                   onClick={() => handleChange(ejec.id, 'sensacion', isActive ? null : val)}
                                   className="px-2.5 py-0.5 rounded-full text-xs font-medium transition-all"
-                                  style={isActive ? SENSACION_STYLE[label] : { background: '#2a2d36', color: '#555' }}
+                                  style={isActive ? SENSACION_STYLE[label] : { background: 'var(--border)', color: 'var(--text-mute)' }}
                                 >
                                   {label}
                                 </button>
@@ -1299,9 +1299,9 @@ export default function SemanaPage() {
                               onChange={(e) => handleChange(ejec.id, 'notas', e.target.value || null)}
                               placeholder="Notas..."
                               className="w-full px-3 py-2 rounded-lg text-sm focus:outline-none"
-                              style={{ background: '#111', border: '1px solid #2a2d36', color: '#f0f0f0' }}
-                              onFocus={(e) => (e.target.style.borderColor = '#c4f135')}
-                              onBlur={(e) => (e.target.style.borderColor = '#2a2d36')}
+                              style={{ background: 'var(--bg)', border: '1px solid #2a2d36', color: 'var(--text)' }}
+                              onFocus={(e) => (e.target.style.borderColor = 'var(--accent)')}
+                              onBlur={(e) => (e.target.style.borderColor = 'var(--border)')}
                             />
                           </div>
 
@@ -1310,7 +1310,7 @@ export default function SemanaPage() {
                               onClick={() => handleSave(ejec.id)}
                               disabled={isSaving}
                               className="w-full py-2 rounded-lg text-sm font-semibold"
-                              style={{ background: '#c4f135', color: '#0f1117', opacity: isSaving ? 0.7 : 1 }}
+                              style={{ background: 'var(--accent)', color: 'var(--bg)', opacity: isSaving ? 0.7 : 1 }}
                             >
                               {isSaving ? 'Guardando...' : 'Guardar'}
                             </button>
@@ -1323,10 +1323,10 @@ export default function SemanaPage() {
                     })()}
 
                     {/* Add exercise section */}
-                    <div className="px-4 py-3" style={{ background: '#0f1117' }}>
+                    <div className="px-4 py-3" style={{ background: 'var(--bg)' }}>
                       {isAddingHere ? (
-                        <div className="p-3 rounded-xl" style={{ background: '#1a1d24', border: '1px solid #2a2d36' }}>
-                          <p className="text-xs font-semibold uppercase tracking-wide mb-3" style={{ color: '#888' }}>Añadir ejercicio</p>
+                        <div className="p-3 rounded-xl" style={{ background: 'var(--bg-card2)', border: '1px solid #2a2d36' }}>
+                          <p className="text-xs font-semibold uppercase tracking-wide mb-3" style={{ color: 'var(--text-dim)' }}>Añadir ejercicio</p>
                           <div className="space-y-2">
                             <input
                               type="text"
@@ -1350,7 +1350,7 @@ export default function SemanaPage() {
                                 { key: 'ritmo', label: 'Ritmo min/km' },
                               ].map(({ key, label }) => (
                                 <div key={key}>
-                                  <label className="block text-xs mb-1" style={{ color: '#555' }}>{label}</label>
+                                  <label className="block text-xs mb-1" style={{ color: 'var(--text-mute)' }}>{label}</label>
                                   <input
                                     type="number" min="0" step="0.1"
                                     value={addForm[key as keyof PlanEditState]}
@@ -1366,14 +1366,14 @@ export default function SemanaPage() {
                                 onClick={() => handleAddExercise(fecha)}
                                 disabled={savingAdd || !addForm.ejercicio.trim()}
                                 className="flex-1 py-2 rounded-lg text-sm font-semibold"
-                                style={{ background: '#c4f135', color: '#0f1117', opacity: savingAdd ? 0.7 : 1 }}
+                                style={{ background: 'var(--accent)', color: 'var(--bg)', opacity: savingAdd ? 0.7 : 1 }}
                               >
                                 {savingAdd ? 'Añadiendo...' : 'Añadir'}
                               </button>
                               <button
                                 onClick={() => { setAddingToDay(null); setAddForm(emptyPlanEdit()); }}
                                 className="px-4 py-2 rounded-lg text-sm"
-                                style={{ background: '#2a2d36', color: '#888' }}
+                                style={{ background: 'var(--border)', color: 'var(--text-dim)' }}
                               >
                                 Cancelar
                               </button>
@@ -1384,7 +1384,7 @@ export default function SemanaPage() {
                         <button
                           onClick={() => { setAddingToDay(fecha); setAddForm(emptyPlanEdit()); }}
                           className="w-full flex items-center justify-center gap-2 py-2 rounded-lg text-sm transition-colors"
-                          style={{ border: '1px dashed #2a2d36', color: '#555' }}
+                          style={{ border: '1px dashed #2a2d36', color: 'var(--text-mute)' }}
                         >
                           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
@@ -1410,13 +1410,13 @@ export default function SemanaPage() {
         >
           <div
             className="rounded-2xl p-6 max-w-sm w-full"
-            style={{ background: '#1a1d24', border: '1px solid #2a2d36' }}
+            style={{ background: 'var(--bg-card2)', border: '1px solid #2a2d36' }}
             onClick={(e) => e.stopPropagation()}
           >
-            <p className="font-semibold mb-1" style={{ color: '#f0f0f0' }}>Borrar día entero</p>
-            <p className="text-sm mb-5" style={{ color: '#888' }}>
+            <p className="font-semibold mb-1" style={{ color: 'var(--text)' }}>Borrar día entero</p>
+            <p className="text-sm mb-5" style={{ color: 'var(--text-dim)' }}>
               Se eliminarán todos los ejercicios del{' '}
-              <span style={{ color: '#f0f0f0' }}>
+              <span style={{ color: 'var(--text)' }}>
                 {new Date(confirmDeleteDay + 'T12:00:00').toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
               </span>. Esta acción no se puede deshacer.
             </p>
@@ -1424,7 +1424,7 @@ export default function SemanaPage() {
               <button
                 onClick={() => setConfirmDeleteDay(null)}
                 className="flex-1 py-2.5 rounded-xl text-sm"
-                style={{ background: '#2a2d36', color: '#888' }}
+                style={{ background: 'var(--border)', color: 'var(--text-dim)' }}
               >
                 Cancelar
               </button>
