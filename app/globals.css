@@ -26,9 +26,9 @@
 
 /* ── Design tokens — LIGHT ─────────────────────────────────────────────────── */
 [data-theme="light"] {
-  --bg:            #f3f5fb;
+  --bg:            #eef7ec;
   --bg-card:       #ffffff;
-  --bg-card2:      #eef1f9;
+  --bg-card2:      #e4f2e1;
   --border:        #e2e5f3;
   --border2:       #d4d7ea;
   --text:          #0d0f1c;
