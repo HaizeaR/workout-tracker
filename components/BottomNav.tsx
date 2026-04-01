@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { useTheme } from '@/lib/theme';
 
 interface NavItem {
   href: string;
@@ -62,6 +63,7 @@ const adminItem: NavItem = {
 
 export default function BottomNav() {
   const pathname = usePathname();
+  const { c } = useTheme();
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
@@ -77,33 +79,35 @@ export default function BottomNav() {
     <nav
       className="fixed bottom-0 left-0 right-0 z-50"
       style={{
-        background: 'rgba(12, 14, 20, 0.88)',
+        background: c('rgba(12,14,20,0.88)', 'rgba(255,255,255,0.90)'),
         backdropFilter: 'blur(24px) saturate(1.8)',
         WebkitBackdropFilter: 'blur(24px) saturate(1.8)',
-        borderTop: '1px solid rgba(255,255,255,0.06)',
+        borderTop: c('1px solid rgba(255,255,255,0.06)', '1px solid rgba(0,0,0,0.07)'),
         paddingBottom: 'env(safe-area-inset-bottom)',
       }}
     >
       <div className="flex items-stretch justify-around max-w-2xl mx-auto" style={{ height: '62px' }}>
         {items.map((item) => {
           const isActive = pathname === item.href;
+          const activeColor = c('#c4f135', '#5fa800');
+          const inactiveColor = c('#3c4260', '#b0b8d0');
           return (
             <Link
               key={item.href}
               href={item.href}
               className="flex flex-col items-center justify-center flex-1 gap-0.5 relative tap-scale"
-              style={{ color: isActive ? '#c4f135' : '#3c4260' }}
+              style={{ color: isActive ? activeColor : inactiveColor }}
             >
               {isActive && (
                 <span
                   className="absolute inset-x-2 inset-y-1.5 rounded-xl animate-scale-in"
-                  style={{ background: 'rgba(196, 241, 53, 0.08)' }}
+                  style={{ background: c('rgba(196,241,53,0.08)', 'rgba(95,168,0,0.08)') }}
                 />
               )}
               <span className="relative z-10">{item.icon(isActive)}</span>
               <span
                 className="relative z-10 text-[10px] font-semibold tracking-wide"
-                style={{ color: isActive ? '#c4f135' : '#3c4260' }}
+                style={{ color: isActive ? activeColor : inactiveColor }}
               >
                 {item.label}
               </span>

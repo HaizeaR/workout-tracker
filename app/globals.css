@@ -1,19 +1,51 @@
 @import "tailwindcss";
 
-/* ── Design tokens ─────────────────────────────────────────────────────────── */
+/* ── Design tokens — DARK (default) ────────────────────────────────────────── */
 :root {
-  --bg:        #0c0e14;
-  --bg-card:   #13161e;
-  --bg-card2:  #1a1d28;
-  --border:    #22263a;
-  --border2:   #2e3349;
-  --text:      #f0f2ff;
-  --text-dim:  #8890b0;
-  --text-mute: #3c4260;
-  --accent:    #c4f135;
-  --accent-dim:#8ab030;
-  --accent-bg: #1e2d0a;
-  --accent-border: #3a5a12;
+  --bg:            #0c0e14;
+  --bg-card:       #13161e;
+  --bg-card2:      #1a1d28;
+  --border:        #22263a;
+  --border2:       #2e3349;
+  --text:          #f0f2ff;
+  --text-dim:      #8890b0;
+  --text-mute:     #3c4260;
+  --accent:        #c4f135;
+  --accent-dim:    #8ab030;
+  --accent-bg:     #1a2d0a;
+  --accent-border: rgba(196,241,53,0.20);
+  --shadow:        0 4px 24px rgba(0,0,0,0.40);
+  --shadow-sm:     0 2px 8px rgba(0,0,0,0.30);
+  --glass-bg:      rgba(19,22,30,0.72);
+  --glass-border:  rgba(255,255,255,0.06);
+  --nav-bg:        rgba(12,14,20,0.88);
+  --nav-border:    rgba(255,255,255,0.06);
+  --streak-bg:     linear-gradient(135deg, #1a2d0a 0%, #0f1a06 100%);
+  --streak-border: rgba(196,241,53,0.20);
+}
+
+/* ── Design tokens — LIGHT ─────────────────────────────────────────────────── */
+[data-theme="light"] {
+  --bg:            #f3f5fb;
+  --bg-card:       #ffffff;
+  --bg-card2:      #eef0f8;
+  --border:        #e2e5f3;
+  --border2:       #d4d7ea;
+  --text:          #0d0f1c;
+  --text-dim:      #5a6180;
+  --text-mute:     #9ba3c0;
+  --accent:        #5fa800;   /* deeper green for white bg contrast */
+  --accent-dim:    #3d7000;
+  --accent-bg:     #edf9d5;
+  --accent-border: rgba(95,168,0,0.25);
+  --shadow:        0 4px 24px rgba(0,0,0,0.07), 0 1px 3px rgba(0,0,0,0.05);
+  --shadow-sm:     0 2px 8px rgba(0,0,0,0.06);
+  --glass-bg:      rgba(255,255,255,0.80);
+  --glass-border:  rgba(0,0,0,0.06);
+  --nav-bg:        rgba(255,255,255,0.90);
+  --nav-border:    rgba(0,0,0,0.07);
+  --streak-bg:     linear-gradient(135deg, #edf9d5 0%, #f5fde8 100%);
+  --streak-border: rgba(95,168,0,0.25);
 }
 
 body {
@@ -21,6 +53,7 @@ body {
   color: var(--text);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  transition: background 0.25s ease, color 0.25s ease;
 }
 
 /* ── Scrollbar ─────────────────────────────────────────────────────────────── */
@@ -30,30 +63,20 @@ body {
 
 /* ── Glass card ────────────────────────────────────────────────────────────── */
 .glass {
-  background: rgba(19, 22, 30, 0.72);
+  background: var(--glass-bg);
   backdrop-filter: blur(20px) saturate(1.4);
   -webkit-backdrop-filter: blur(20px) saturate(1.4);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-.glass-strong {
-  background: rgba(26, 29, 40, 0.85);
-  backdrop-filter: blur(30px) saturate(1.6);
-  -webkit-backdrop-filter: blur(30px) saturate(1.6);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--glass-border);
 }
 
 /* ── Glow effects ──────────────────────────────────────────────────────────── */
 .glow-lime {
-  box-shadow: 0 0 20px rgba(196, 241, 53, 0.20), 0 0 60px rgba(196, 241, 53, 0.08);
+  box-shadow: 0 0 20px var(--accent-border), 0 0 60px color-mix(in srgb, var(--accent) 8%, transparent);
 }
-
-.glow-lime-sm {
-  box-shadow: 0 0 12px rgba(196, 241, 53, 0.15);
-}
+.glow-lime-sm { box-shadow: 0 0 12px var(--accent-border); }
 
 .glow-card {
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4), 0 1px 0 rgba(255, 255, 255, 0.04) inset;
+  box-shadow: var(--shadow);
 }
 
 /* ── Animations ────────────────────────────────────────────────────────────── */
@@ -65,31 +88,27 @@ body {
   from { opacity: 0; }
   to   { opacity: 1; }
 }
-@keyframes pulse-lime {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(196, 241, 53, 0.4); }
-  50%       { box-shadow: 0 0 0 8px rgba(196, 241, 53, 0); }
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.94); }
+  to   { opacity: 1; transform: scale(1); }
 }
 @keyframes shimmer {
   0%   { background-position: -200% 0; }
   100% { background-position: 200% 0; }
 }
-@keyframes scaleIn {
-  from { opacity: 0; transform: scale(0.95); }
-  to   { opacity: 1; transform: scale(1); }
-}
 
-.animate-fade-up   { animation: fadeUp 0.4s ease both; }
-.animate-fade-in   { animation: fadeIn 0.3s ease both; }
-.animate-scale-in  { animation: scaleIn 0.2s ease both; }
+.animate-fade-up  { animation: fadeUp 0.4s ease both; }
+.animate-fade-in  { animation: fadeIn 0.3s ease both; }
+.animate-scale-in { animation: scaleIn 0.2s ease both; }
 
-/* Staggered fade-up for lists */
+/* Staggered children */
 .stagger > *:nth-child(1) { animation: fadeUp 0.4s 0.00s ease both; }
-.stagger > *:nth-child(2) { animation: fadeUp 0.4s 0.05s ease both; }
-.stagger > *:nth-child(3) { animation: fadeUp 0.4s 0.10s ease both; }
-.stagger > *:nth-child(4) { animation: fadeUp 0.4s 0.15s ease both; }
-.stagger > *:nth-child(5) { animation: fadeUp 0.4s 0.20s ease both; }
-.stagger > *:nth-child(6) { animation: fadeUp 0.4s 0.25s ease both; }
-.stagger > *:nth-child(7) { animation: fadeUp 0.4s 0.30s ease both; }
+.stagger > *:nth-child(2) { animation: fadeUp 0.4s 0.06s ease both; }
+.stagger > *:nth-child(3) { animation: fadeUp 0.4s 0.12s ease both; }
+.stagger > *:nth-child(4) { animation: fadeUp 0.4s 0.18s ease both; }
+.stagger > *:nth-child(5) { animation: fadeUp 0.4s 0.24s ease both; }
+.stagger > *:nth-child(6) { animation: fadeUp 0.4s 0.30s ease both; }
+.stagger > *:nth-child(7) { animation: fadeUp 0.4s 0.36s ease both; }
 
 /* ── Skeleton shimmer ──────────────────────────────────────────────────────── */
 .skeleton {
@@ -113,28 +132,29 @@ body {
   opacity: 0.85;
 }
 
-/* ── Input focus ring ──────────────────────────────────────────────────────── */
-input:focus, select:focus, textarea:focus {
-  outline: none;
+/* ── Theme transition on cards ─────────────────────────────────────────────── */
+* {
+  transition-property: background-color, border-color, color, box-shadow;
+  transition-duration: 200ms;
+  transition-timing-function: ease;
+}
+/* Override: don't transition transforms */
+.tap-scale, .animate-fade-up, .animate-scale-in {
+  transition-property: transform, opacity, background-color, border-color, color, box-shadow;
 }
 
-/* ── Gradient text ─────────────────────────────────────────────────────────── */
+/* ── Gradient lime text ────────────────────────────────────────────────────── */
 .gradient-lime {
-  background: linear-gradient(135deg, #c4f135 0%, #8ab030 100%);
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-dim) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-/* ── Progress bar track ────────────────────────────────────────────────────── */
-.progress-track {
-  background: var(--border);
-  border-radius: 999px;
-  overflow: hidden;
-}
+/* ── Progress fill ─────────────────────────────────────────────────────────── */
 .progress-fill {
   height: 100%;
   border-radius: 999px;
-  background: linear-gradient(90deg, #8ab030, #c4f135);
+  background: linear-gradient(90deg, var(--accent-dim), var(--accent));
   transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
 }
