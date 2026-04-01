@@ -30,21 +30,11 @@ const navItems: NavItem[] = [
     ),
   },
   {
-    href: '/progreso',
-    label: 'Progreso',
-    icon: (active) => (
-      <svg className="w-[22px] h-[22px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={active ? 2.2 : 1.8}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
-      </svg>
-    ),
-  },
-  {
     href: '/historial',
     label: 'Historial',
     icon: (active) => (
       <svg className="w-[22px] h-[22px]" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={active ? 2.2 : 1.8}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6M9 16h4" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
     ),
   },
@@ -87,7 +77,7 @@ export default function BottomNav() {
     <nav
       className="fixed bottom-0 left-0 right-0 z-50"
       style={{
-        background: 'rgba(12, 14, 20, 0.80)',
+        background: 'rgba(12, 14, 20, 0.88)',
         backdropFilter: 'blur(24px) saturate(1.8)',
         WebkitBackdropFilter: 'blur(24px) saturate(1.8)',
         borderTop: '1px solid rgba(255,255,255,0.06)',
@@ -96,7 +86,7 @@ export default function BottomNav() {
     >
       <div className="flex items-stretch justify-around max-w-2xl mx-auto" style={{ height: '62px' }}>
         {items.map((item) => {
-          const isActive = pathname === item.href || (item.href !== '/dashboard' && pathname.startsWith(item.href));
+          const isActive = pathname === item.href;
           return (
             <Link
               key={item.href}
@@ -104,7 +94,6 @@ export default function BottomNav() {
               className="flex flex-col items-center justify-center flex-1 gap-0.5 relative tap-scale"
               style={{ color: isActive ? '#c4f135' : '#3c4260' }}
             >
-              {/* Active background pill */}
               {isActive && (
                 <span
                   className="absolute inset-x-2 inset-y-1.5 rounded-xl animate-scale-in"
