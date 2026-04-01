@@ -54,7 +54,7 @@ function MonthCalendar({ data, onDayClick }: { data: MonthData; onDayClick: (day
 
   return (
     <div className="mb-8">
-      <h2 className="text-base font-semibold mb-3" style={{ color: '#ccc' }}>
+      <h2 className="text-base font-bold mb-3" style={{ color: '#8890b0' }}>
         {MONTH_NAMES[month]} {year}
       </h2>
 
@@ -155,8 +155,8 @@ export default function HistorialPage() {
   }
 
   return (
-    <div className="p-4 max-w-sm mx-auto">
-      <h1 className="text-xl font-bold mb-2" style={{ color: '#f0f0f0' }}>Historial</h1>
+    <div className="p-4 max-w-sm mx-auto animate-fade-in">
+      <h1 className="text-2xl font-bold mb-2 pt-3" style={{ color: '#f0f2ff' }}>Historial</h1>
 
       {/* Legend */}
       <div className="flex flex-wrap gap-2 mb-6">
@@ -169,7 +169,7 @@ export default function HistorialPage() {
         ].map((t) => (
           <div key={t.label} className="flex items-center gap-1">
             <span className="w-2.5 h-2.5 rounded-full flex-shrink-0" style={{ background: t.color }} />
-            <span className="text-xs" style={{ color: '#666' }}>{t.label}</span>
+            <span className="text-xs font-medium" style={{ color: '#3c4260' }}>{t.label}</span>
           </div>
         ))}
       </div>
