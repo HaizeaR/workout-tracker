@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Sesion, Ejecucion } from '@/db/schema';
 import CsvUpload from '@/components/CsvUpload';
+import WorkoutBuilder from '@/components/WorkoutBuilder';
 
 interface SemanaInfo {
   id: number;
@@ -131,6 +132,8 @@ export default function SemanaPage() {
   const [movingDay, setMovingDay] = useState<string | null>(null);
   const [moveTarget, setMoveTarget] = useState<string>('');
   const [savingMove, setSavingMove] = useState(false);
+
+  const [builderDay, setBuilderDay] = useState<string | null>(null);
 
   // Orden state
   const [savingOrden, setSavingOrden] = useState<Set<number>>(new Set());
@@ -885,6 +888,17 @@ export default function SemanaPage() {
                       })()}
                     </div>
                     <div className="flex items-center gap-2">
+                      {/* Workout builder button */}
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setBuilderDay(fecha); }}
+                        className="w-6 h-6 rounded flex items-center justify-center tap-scale"
+                        style={{ background: 'transparent' }}
+                        title="Añadir bloque EMOM/AMRAP/Circuito"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="var(--accent)" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                        </svg>
+                      </button>
                       {/* Delete day button */}
                       <button
                         onClick={(e) => { e.stopPropagation(); setConfirmDeleteDay(fecha); }}
@@ -1439,6 +1453,21 @@ export default function SemanaPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Workout Builder fullscreen modal */}
+      {builderDay && detail && (
+        <WorkoutBuilder
+          semanaId={detail.semana.id}
+          fecha={builderDay}
+          onClose={() => setBuilderDay(null)}
+          onSuccess={() => {
+            setBuilderDay(null);
+            fetch(`/api/semanas/${detail.semana.id}`)
+              .then((r) => r.json())
+              .then(setDetail);
+          }}
+        />
       )}
     </div>
   );
